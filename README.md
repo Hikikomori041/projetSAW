@@ -1,6 +1,6 @@
 # Projet du cours de Sécurité des Applications Web (partie application)
 
-## Groupe
+## Groupe - équipe INDIA
 Étudiants IL : BLACHÈRE Nicolas et ORTEGA Erwan
 
 Étudiants SIRAV : ZOUARI Sami et SOUDANI Younes
