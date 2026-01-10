@@ -53,7 +53,8 @@ export class ChannelsService implements OnModuleInit {
     const userIdStr = userId.toString();
     const isMember = channel.members?.some(m => m.toString() === userIdStr);
     const isCreator = channel.createdBy.toString() === userIdStr;
-    console.log('Access check:', {
+    /*
+    console.debug('Access check:', {
       channelId: id,
       userIdStr,
       createdBy: channel.createdBy.toString(),
@@ -62,6 +63,7 @@ export class ChannelsService implements OnModuleInit {
       isCreator,
       isMember
     });
+    */
     if (role !== 'admin' && !isCreator && !isMember) {
       throw new ForbiddenException('Access denied to this channel');
     }

@@ -10,17 +10,17 @@ export class MessagesGateway implements OnGatewayConnection, OnGatewayDisconnect
   constructor(private messagesService: MessagesService) {}
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+  //   console.debug(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+  //   console.debug(`Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('joinChannel')
   handleJoinChannel(client: Socket, channelId: string) {
     client.join(channelId);
-    console.log(`Client ${client.id} joined channel ${channelId}`);
+    // console.debug(`Client ${client.id} joined channel ${channelId}`);
   }
 
   @SubscribeMessage('sendMessage')
