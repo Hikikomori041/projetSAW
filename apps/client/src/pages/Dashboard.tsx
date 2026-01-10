@@ -13,7 +13,7 @@ interface Channel {
 interface Message {
   _id: string;
   content: string;
-  author: { username: string };
+  author: { _id: string; username: string };
   createdAt: string;
 }
 
@@ -37,6 +37,8 @@ const Dashboard = () => {
   const [messageContextMenu, setMessageContextMenu] = useState<{ messageId: string; x: number; y: number } | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState<string>('');
+  const [deleteModal, setDeleteModal] = useState<{ type: 'message' | 'channel' | 'ban'; id: string; username?: string } | null>(null);
+  const [deleteReason, setDeleteReason] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -217,7 +219,7 @@ const Dashboard = () => {
 
   const handleMessageContextMenu = (e: React.MouseEvent, messageId: string, messageAuthor: string) => {
     e.preventDefault();
-    if (messageAuthor === username) {
+    if (messageAuthor === username || userRole === 'admin') {
       setMessageContextMenu({ messageId, x: e.clientX, y: e.clientY });
     }
   };
@@ -252,16 +254,68 @@ const Dashboard = () => {
   };
 
   const deleteMessage = async (messageId: string) => {
-    if (!confirm('Voulez-vous vraiment supprimer ce message ?')) return;
-    try {
-      await axios.delete(`http://localhost:3000/messages/${messageId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
+    const message = messages.find(m => m._id === messageId);
+    if (!message) return;
+    
+    // Si admin supprime le message de quelqu'un d'autre, demander la raison
+    if (userRole === 'admin' && message.author.username !== username) {
+      setDeleteModal({ type: 'message', id: messageId });
+      setDeleteReason('Violation des règles de la communauté');
       setMessageContextMenu(null);
-    } catch (error) {
-      console.error('Failed to delete message', error);
-      alert('Erreur lors de la suppression du message');
+    } else {
+      if (!confirm('Voulez-vous vraiment supprimer ce message ?')) return;
+      try {
+        await axios.delete(`http://localhost:3000/messages/${messageId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setMessageContextMenu(null);
+      } catch (error) {
+        console.error('Failed to delete message', error);
+        alert('Erreur lors de la suppression du message');
+      }
     }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteModal) return;
+    try {
+      if (deleteModal.type === 'message') {
+        await axios.delete(`http://localhost:3000/messages/${deleteModal.id}`, {
+          data: { reason: deleteReason },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+      } else if (deleteModal.type === 'channel') {
+        await axios.delete(`http://localhost:3000/channels/${deleteModal.id}`, {
+          data: { reason: deleteReason },
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setSelectedChannel(null);
+        await fetchChannels();
+      } else if (deleteModal.type === 'ban') {
+        await axios.post(`http://localhost:3000/users/${deleteModal.id}/ban`, 
+          { reason: deleteReason },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        alert(`Utilisateur ${deleteModal.username} banni avec succès`);
+      }
+      setDeleteModal(null);
+      setDeleteReason('');
+    } catch (error) {
+      console.error('Failed to execute admin action', error);
+      alert('Erreur lors de l\'exécution de l\'action');
+    }
+  };
+
+  const deleteChannel = (channelId: string) => {
+    setDeleteModal({ type: 'channel', id: channelId });
+    setDeleteReason('Violation des règles de la plateforme');
+    setContextMenu(null);
+  };
+
+  const banUser = (username: string, userId: string) => {
+    setDeleteModal({ type: 'ban', id: userId, username });
+    setDeleteReason('Violation des règles de la plateforme');
+    setMessageContextMenu(null);
   };
 
   return (
@@ -477,6 +531,15 @@ const Dashboard = () => {
             <span>🔗</span>
             <span>Copier le lien d'invitation</span>
           </button>
+          {userRole === 'admin' && (
+            <button
+              className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
+              onClick={() => deleteChannel(contextMenu.channelId)}
+            >
+              <span>🗑️</span>
+              <span>Supprimer le salon</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -487,20 +550,80 @@ const Dashboard = () => {
           style={{ top: messageContextMenu.y, left: messageContextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <button
-            className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
-            onClick={() => startEditMessage(messageContextMenu.messageId)}
-          >
-            <span>✏️</span>
-            <span>Modifier</span>
-          </button>
-          <button
-            className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
-            onClick={() => deleteMessage(messageContextMenu.messageId)}
-          >
-            <span>🗑️</span>
-            <span>Supprimer</span>
-          </button>
+          {(() => {
+            const message = messages.find(m => m._id === messageContextMenu.messageId);
+            const isOwnMessage = message?.author.username === username;
+            return (
+              <>
+                {isOwnMessage && (
+                  <button
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
+                    onClick={() => startEditMessage(messageContextMenu.messageId)}
+                  >
+                    <span>✏️</span>
+                    <span>Modifier</span>
+                  </button>
+                )}
+                <button
+                  className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
+                  onClick={() => deleteMessage(messageContextMenu.messageId)}
+                >
+                  <span>🗑️</span>
+                  <span>Supprimer</span>
+                </button>
+                {userRole === 'admin' && !isOwnMessage && message && (
+                  <button
+                    className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-orange-400"
+                    onClick={() => banUser(message.author.username, message.author._id)}
+                  >
+                    <span>🚫</span>
+                    <span>Bannir l'utilisateur</span>
+                  </button>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Delete/Ban Modal */}
+      {deleteModal && (
+        <div className="modal modal-open">
+          <div className="modal-box bg-gray-800 text-white">
+            <h3 className="font-bold text-lg mb-4">
+              {deleteModal.type === 'message' && 'Supprimer le message'}
+              {deleteModal.type === 'channel' && 'Supprimer le salon'}
+              {deleteModal.type === 'ban' && `Bannir ${deleteModal.username}`}
+            </h3>
+            <p className="mb-4">
+              Veuillez indiquer la raison de cette action :
+            </p>
+            <textarea
+              className="textarea textarea-bordered w-full bg-gray-700 text-white mb-4"
+              rows={3}
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              placeholder="Raison..."
+            />
+            <div className="modal-action">
+              <button 
+                className="btn btn-error"
+                onClick={confirmDelete}
+                disabled={!deleteReason.trim()}
+              >
+                Confirmer
+              </button>
+              <button 
+                className="btn"
+                onClick={() => {
+                  setDeleteModal(null);
+                  setDeleteReason('');
+                }}
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -17,24 +17,24 @@ export class MessagesService {
       channel: createMessageDto.channelId,
     });
     const savedMessage = await message.save();
-    return this.messageModel.findById(savedMessage._id).populate('author', 'username').exec() as Promise<Message>;
+    return this.messageModel.findById(savedMessage._id).populate('author', '_id username').exec() as Promise<Message>;
   }
 
   async findByChannel(channelId: string): Promise<Message[]> {
     return this.messageModel
       .find({ channel: channelId })
-      .populate('author', 'username')
+      .populate('author', '_id username')
       .sort({ createdAt: 1 })
       .exec();
   }
 
   async findOne(id: string): Promise<Message | null> {
-    return this.messageModel.findById(id).populate('author', 'username').exec();
+    return this.messageModel.findById(id).populate('author', '_id username').exec();
   }
 
   async update(id: string, content: string): Promise<Message | null> {
     await this.messageModel.findByIdAndUpdate(id, { content }, { new: true }).exec();
-    return this.messageModel.findById(id).populate('author', 'username').exec();
+    return this.messageModel.findById(id).populate('author', '_id username').exec();
   }
 
   async remove(id: string): Promise<Message | null> {

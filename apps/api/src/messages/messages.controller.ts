@@ -4,6 +4,8 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MessagesGateway } from './messages.gateway';
 import { ChannelsService } from '../channels/channels.service';
+import { EmailService } from '../email/email.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('messages')
 @UseGuards(JwtAuthGuard)
@@ -12,6 +14,8 @@ export class MessagesController {
     private readonly messagesService: MessagesService,
     private readonly messagesGateway: MessagesGateway,
     private readonly channelsService: ChannelsService,
+    private readonly emailService: EmailService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post()
@@ -44,7 +48,7 @@ export class MessagesController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req) {
+  async remove(@Param('id') id: string, @Body() body: { reason?: string }, @Request() req) {
     const message = await this.messagesService.findOne(id);
     if (!message) {
       throw new ForbiddenException('Message not found');
@@ -53,6 +57,21 @@ export class MessagesController {
     if (authorId !== req.user._id.toString() && req.user.role !== 'admin') {
       throw new ForbiddenException('You can only delete your own messages');
     }
+    
+    // Si c'est un admin qui supprime le message de quelqu'un d'autre, envoyer un email
+    if (req.user.role === 'admin' && authorId !== req.user._id.toString()) {
+      const author = await this.usersService.findOne(authorId);
+      if (author) {
+        const reason = body.reason || 'Violation des règles de la communauté';
+        await this.emailService.sendMessageDeletedNotification(
+          author.email,
+          author.username,
+          message.content,
+          reason
+        );
+      }
+    }
+    
     await this.messagesService.remove(id);
     this.messagesGateway.server.to(message.channel.toString()).emit('messageDeleted', id);
     return { deleted: true };

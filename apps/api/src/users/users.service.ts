@@ -48,6 +48,14 @@ export class UsersService {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
+  async banUser(id: string, reason: string): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndUpdate(
+      id,
+      { banned: true, bannedReason: reason },
+      { new: true }
+    ).exec();
+  }
+
   async validatePassword(password: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }

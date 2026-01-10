@@ -17,6 +17,12 @@ export class User {
   @Prop({ default: 'user' }) // 'user' or 'admin'
   role: string;
 
+  @Prop({ default: false })
+  banned: boolean;
+
+  @Prop()
+  bannedReason?: string;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }

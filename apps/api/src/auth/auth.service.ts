@@ -25,6 +25,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
+    if (user.banned) {
+      throw new UnauthorizedException(`Account banned: ${user.bannedReason || 'Contact support'}`);
+    }
     const isPasswordValid = await this.usersService.validatePassword(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');

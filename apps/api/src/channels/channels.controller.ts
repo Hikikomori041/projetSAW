@@ -3,11 +3,17 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChannelsService } from './channels.service';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
+import { EmailService } from '../email/email.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('channels')
 @UseGuards(JwtAuthGuard)
 export class ChannelsController {
-  constructor(private readonly channelsService: ChannelsService) {}
+  constructor(
+    private readonly channelsService: ChannelsService,
+    private readonly emailService: EmailService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post()
   create(@Body() createChannelDto: CreateChannelDto, @Request() req) {
@@ -35,7 +41,27 @@ export class ChannelsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Body() body: { reason?: string }, @Request() req) {
+    // Seul un admin peut supprimer n'importe quel salon
+    const channel = await this.channelsService.findOneAuthorized(id, req.user._id, req.user.role);
+    
+    if (req.user.role === 'admin') {
+      const reason = body.reason || 'Violation des règles de la plateforme';
+      // Récupérer tous les membres et leur envoyer un email
+      const memberIds = channel.members?.map(m => m.toString()) || [];
+      for (const memberId of memberIds) {
+        const user = await this.usersService.findOne(memberId);
+        if (user) {
+          await this.emailService.sendChannelDeletedNotification(
+            user.email,
+            user.username,
+            channel.name,
+            reason
+          );
+        }
+      }
+    }
+    
     return this.channelsService.remove(id);
   }
 }
