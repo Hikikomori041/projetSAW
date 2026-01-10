@@ -24,19 +24,34 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string, @Request() req) {
+    if (req.user._id.toString() !== id && req.user.role !== 'admin') {
+      throw new ForbiddenException('Vous ne pouvez consulter que votre propre profil');
+    }
     return this.usersService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+    if (req.user._id.toString() !== id && req.user.role !== 'admin') {
+      throw new ForbiddenException('Vous ne pouvez modifier que votre propre profil');
+    }
     return this.usersService.update(id, updateUserDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: string, @Request() req) {
+    if (req.user._id.toString() !== id && req.user.role !== 'admin') {
+      throw new ForbiddenException('Vous ne pouvez supprimer que votre propre compte');
+    }
+    const deleted = await this.usersService.remove(id);
+    // Notifier les clients pour mettre à jour les pseudos affichés
+    this.messagesGateway.server.emit('userBanned', { userId: id });
+    return { deleted: !!deleted };
   }
 
   @Post(':id/ban')

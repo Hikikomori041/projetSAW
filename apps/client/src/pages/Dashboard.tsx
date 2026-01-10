@@ -7,19 +7,26 @@ import io, { Socket } from 'socket.io-client';
 interface Channel {
   _id: string;
   name: string;
-  createdBy: { username: string };
+  createdBy?: { username: string } | null;
+}
+
+interface MessageAuthor {
+  _id: string;
+  username: string;
+  banned?: boolean;
 }
 
 interface Message {
   _id: string;
   content: string;
-  author: { _id: string; username: string };
+  author?: MessageAuthor | null;
   createdAt: string;
 }
 
 interface DecodedToken {
   username: string;
   role: string;
+  sub: string;
 }
 
 const Dashboard = () => {
@@ -30,6 +37,7 @@ const Dashboard = () => {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [userRole, setUserRole] = useState<string>('');
   const [username, setUsername] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [pendingJoinChannelId, setPendingJoinChannelId] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
@@ -46,6 +54,24 @@ const Dashboard = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const fetchCurrentUser = async (id: string, token: string) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/users/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUsername(response.data.username);
+    } catch (error) {
+      console.error('Failed to fetch current user', error);
+    }
+  };
+
+  const getAuthorName = (author?: MessageAuthor | null) => {
+    if (!author) return '[supprimé]';
+    if (author.banned) return '[supprimé]';
+    if (author.username.startsWith('[supprimé')) return '[supprimé]';
+    return author.username;
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -58,7 +84,10 @@ const Dashboard = () => {
     }
     const decoded: DecodedToken = jwtDecode(token);
     setUserRole(decoded.role);
+    setUserId(decoded.sub);
     setUsername(decoded.username);
+    // On récupère le username à jour depuis l'API (le token peut être obsolète après renommage)
+    fetchCurrentUser(decoded.sub, token);
     fetchChannels();
 
     const params = new URLSearchParams(window.location.search);
@@ -88,8 +117,8 @@ const Dashboard = () => {
     newSocket.on('userBanned', (data: { userId: string }) => {
       // Mettre à jour tous les messages de l'utilisateur banni
       setMessages(prev => prev.map(m => 
-        m.author._id === data.userId 
-          ? { ...m, author: { ...m.author, username: '[supprimé]' } }
+        m.author?._id === data.userId 
+          ? { ...m, author: { ...m.author, username: '[supprimé]', banned: true } }
           : m
       ));
     });
@@ -226,9 +255,9 @@ const Dashboard = () => {
     }
   }, [messageContextMenu]);
 
-  const handleMessageContextMenu = (e: React.MouseEvent, messageId: string, messageAuthor: string) => {
+  const handleMessageContextMenu = (e: React.MouseEvent, messageId: string, messageAuthorId?: string) => {
     e.preventDefault();
-    if (messageAuthor === username || userRole === 'admin') {
+    if (userRole === 'admin' || (messageAuthorId && messageAuthorId === userId)) {
       setMessageContextMenu({ messageId, x: e.clientX, y: e.clientY });
     }
   };
@@ -267,7 +296,7 @@ const Dashboard = () => {
     if (!message) return;
     
     // Si admin supprime le message de quelqu'un d'autre, demander la raison
-    if (userRole === 'admin' && message.author.username !== username) {
+    if (userRole === 'admin' && message.author?._id !== userId) {
       setDeleteModal({ type: 'message', id: messageId });
       setDeleteReason('Violation des règles de la communauté');
       setMessageContextMenu(null);
@@ -364,7 +393,7 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400">#</span>
                   <span className="truncate">{channel.name}</span>
-                  <span className="text-xs text-gray-400">par {channel.createdBy.username}</span>
+                  <span className="text-xs text-gray-400">par {getAuthorName(channel.createdBy as any)}</span>
                 </div>
               </li>
             ))}
@@ -395,16 +424,28 @@ const Dashboard = () => {
         )}
         
         <div className="p-4 border-t border-gray-700">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="avatar placeholder">
-              <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
-                <span className="text-xs">{username.charAt(0).toUpperCase()}</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center space-x-3">
+              <div className="avatar placeholder">
+                <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
+                  <span className="text-xs">{username.charAt(0).toUpperCase()}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-200">{username}</div>
+                <div className="text-xs text-gray-400">{userRole === 'admin' ? 'Administrateur' : ''}</div>
               </div>
             </div>
-            <div>
-              <div className="text-sm font-medium text-gray-200">{username}</div>
-              <div className="text-xs text-gray-400">{userRole === 'admin' ? 'Administrateur' : ''}</div>
-            </div>
+            <button
+              className="btn btn-ghost btn-sm text-gray-300 hover:text-white"
+              onClick={() => navigate('/settings')}
+              title="Paramètres utilisateur"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.757.426 1.757 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.757-2.924 1.757-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.757-.426-1.757-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
           </div>
           <button 
             onClick={logout}
@@ -428,7 +469,7 @@ const Dashboard = () => {
                 {selectedChannel.name}
                 {userRole === 'admin' && (
                   <span className="ml-4 text-sm text-gray-400">
-                    Créé par {selectedChannel.createdBy.username}
+                    Créé par {getAuthorName(selectedChannel.createdBy as any)}
                   </span>
                 )}
               </h1>
@@ -445,17 +486,18 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   messages.map((message) => {
-                    const isOwnMessage = message.author.username === username;
-                    const isBanned = message.author.username === '[supprimé]';
+                    const authorName = getAuthorName(message.author);
+                    const isOwnMessage = message.author?._id === userId;
+                    const isBanned = authorName === '[supprimé]';
                     return (
                       <div 
                         key={message._id} 
                         className={`chat ${isOwnMessage ? 'chat-end' : 'chat-start'}`}
-                        onContextMenu={(e) => handleMessageContextMenu(e, message._id, message.author.username)}
+                        onContextMenu={(e) => handleMessageContextMenu(e, message._id, message.author?._id)}
                       >
                         <div className="chat-header text-gray-400 text-sm">
                           <span className={isBanned ? 'italic opacity-70' : ''}>
-                            {message.author.username}
+                            {authorName}
                           </span>
                           <time className="text-xs opacity-50 ml-2">
                             {new Date(message.createdAt).toLocaleString()}
@@ -567,8 +609,9 @@ const Dashboard = () => {
         >
           {(() => {
             const message = messages.find(m => m._id === messageContextMenu.messageId);
-            const isOwnMessage = message?.author.username === username;
-            const isBanned = message?.author.username === '[supprimé]';
+            const authorName = getAuthorName(message?.author);
+            const isOwnMessage = message?.author?._id === userId;
+            const isBanned = authorName === '[supprimé]';
             return (
               <>
                 {isOwnMessage && !isBanned && (
@@ -587,7 +630,7 @@ const Dashboard = () => {
                   <span>🗑️</span>
                   <span>Supprimer</span>
                 </button>
-                {userRole === 'admin' && !isOwnMessage && !isBanned && message && (
+                {userRole === 'admin' && !isOwnMessage && !isBanned && message?.author && (
                   <button
                     className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-orange-400"
                     onClick={() => banUser(message.author.username, message.author._id)}

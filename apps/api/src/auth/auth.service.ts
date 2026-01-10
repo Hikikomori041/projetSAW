@@ -40,8 +40,8 @@ export class AuthService {
 
   async validateUser(payload: any): Promise<UserDocument> {
     const user = await this.usersService.findOne(payload.sub);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
+    if (!user || user.banned) {
+      throw new UnauthorizedException('User not found or inactive');
     }
     return user;
   }

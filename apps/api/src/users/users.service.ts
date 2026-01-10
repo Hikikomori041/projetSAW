@@ -38,20 +38,29 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument | null> {
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    // On limite les champs modifiables pour éviter qu'un utilisateur ne s'auto-promouvoie admin/banned
+    const payload: Partial<User> = {};
+    if (updateUserDto.username) {
+      payload.username = updateUserDto.username;
     }
-    return this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
+    if (updateUserDto.password) {
+      payload.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+
+    return this.userModel.findByIdAndUpdate(id, payload, { new: true }).exec();
   }
 
   async remove(id: string): Promise<UserDocument | null> {
+    // Suppression réelle du document utilisateur
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
   async banUser(id: string, reason: string): Promise<UserDocument | null> {
+    // Assure un username unique pour éviter les collisions sur l'index unique
+    const anonymizedUsername = `[supprimé]-${id}`;
     return this.userModel.findByIdAndUpdate(
       id,
-      { banned: true, bannedReason: reason, username: '[supprimé]' },
+      { banned: true, bannedReason: reason, username: anonymizedUsername },
       { new: true }
     ).exec();
   }
