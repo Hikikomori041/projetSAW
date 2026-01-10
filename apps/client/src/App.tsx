@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -13,7 +13,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/channels" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Navigate to="/channels" replace />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/test" element={<TestDaisy />} />
       </Routes>

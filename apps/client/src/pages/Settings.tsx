@@ -126,7 +126,7 @@ const Settings = () => {
             <h1 className="text-3xl font-bold">Paramètres du compte</h1>
             <p className="text-gray-400">Gérez votre profil, mot de passe et suppression de compte.</p>
           </div>
-          <button className="btn btn-outline" onClick={() => navigate('/dashboard')}>
+          <button className="btn btn-outline" onClick={() => navigate('/channels')}>
             Retour au dashboard
           </button>
         </div>

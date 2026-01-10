@@ -230,7 +230,7 @@ const Dashboard = () => {
   };
 
   const copyInviteLink = (channelId: string) => {
-    const inviteLink = `${window.location.origin}/dashboard?join=${channelId}`;
+    const inviteLink = `${window.location.origin}/channels?join=${channelId}`;
     navigator.clipboard.writeText(inviteLink).then(() => {
       alert('Lien d\'invitation copié dans le presse-papier !');
       setContextMenu(null);

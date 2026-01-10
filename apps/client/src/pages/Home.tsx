@@ -15,7 +15,7 @@ const Home = () => {
       try {
         const decoded: DecodedToken = jwtDecode(token);
         if (decoded.exp * 1000 > Date.now()) {
-          navigate('/dashboard');
+          navigate('/channels');
         } else {
           localStorage.removeItem('token');
         }
