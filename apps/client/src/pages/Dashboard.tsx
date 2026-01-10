@@ -34,6 +34,9 @@ const Dashboard = () => {
   const [pendingJoinChannelId, setPendingJoinChannelId] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ channelId: string; x: number; y: number } | null>(null);
+  const [messageContextMenu, setMessageContextMenu] = useState<{ messageId: string; x: number; y: number } | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -70,6 +73,14 @@ const Dashboard = () => {
 
     newSocket.on('newMessage', (message: Message) => {
       setMessages(prev => [...prev, message]);
+    });
+
+    newSocket.on('messageUpdated', (updatedMessage: Message) => {
+      setMessages(prev => prev.map(m => m._id === updatedMessage._id ? updatedMessage : m));
+    });
+
+    newSocket.on('messageDeleted', (messageId: string) => {
+      setMessages(prev => prev.filter(m => m._id !== messageId));
     });
 
     return () => {
@@ -196,6 +207,63 @@ const Dashboard = () => {
     }
   }, [contextMenu]);
 
+  useEffect(() => {
+    const handleClickOutside = () => setMessageContextMenu(null);
+    if (messageContextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [messageContextMenu]);
+
+  const handleMessageContextMenu = (e: React.MouseEvent, messageId: string, messageAuthor: string) => {
+    e.preventDefault();
+    if (messageAuthor === username) {
+      setMessageContextMenu({ messageId, x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const startEditMessage = (messageId: string) => {
+    const message = messages.find(m => m._id === messageId);
+    if (message) {
+      setEditingMessageId(messageId);
+      setEditingContent(message.content);
+      setMessageContextMenu(null);
+    }
+  };
+
+  const saveEditMessage = async (messageId: string) => {
+    if (!editingContent.trim()) return;
+    try {
+      await axios.patch(`http://localhost:3000/messages/${messageId}`, 
+        { content: editingContent },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      setEditingMessageId(null);
+      setEditingContent('');
+    } catch (error) {
+      console.error('Failed to update message', error);
+      alert('Erreur lors de la modification du message');
+    }
+  };
+
+  const cancelEditMessage = () => {
+    setEditingMessageId(null);
+    setEditingContent('');
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    if (!confirm('Voulez-vous vraiment supprimer ce message ?')) return;
+    try {
+      await axios.delete(`http://localhost:3000/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setMessageContextMenu(null);
+    } catch (error) {
+      console.error('Failed to delete message', error);
+      alert('Erreur lors de la suppression du message');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white" onClick={() => setContextMenu(null)}>
       {pendingJoinChannelId && (
@@ -314,16 +382,41 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   messages.map((message) => (
-                    <div key={message._id} className="chat chat-start">
+                    <div 
+                      key={message._id} 
+                      className="chat chat-start"
+                      onContextMenu={(e) => handleMessageContextMenu(e, message._id, message.author.username)}
+                    >
                       <div className="chat-header text-gray-400 text-sm">
                         {message.author.username}
                         <time className="text-xs opacity-50 ml-2">
                           {new Date(message.createdAt).toLocaleString()}
                         </time>
                       </div>
-                      <div className="chat-bubble chat-bubble-primary">
-                        {message.content}
-                      </div>
+                      {editingMessageId === message._id ? (
+                        <div className="flex items-center gap-2 mt-1">
+                          <input
+                            type="text"
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && saveEditMessage(message._id)}
+                            className="input input-sm input-bordered flex-1 bg-gray-700 text-white"
+                            autoFocus
+                          />
+                          <button 
+                            onClick={() => saveEditMessage(message._id)}
+                            className="btn btn-sm btn-success"
+                          >✓</button>
+                          <button 
+                            onClick={cancelEditMessage}
+                            className="btn btn-sm btn-error"
+                          >✕</button>
+                        </div>
+                      ) : (
+                        <div className="chat-bubble chat-bubble-primary">
+                          {message.content}
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
@@ -383,6 +476,30 @@ const Dashboard = () => {
           >
             <span>🔗</span>
             <span>Copier le lien d'invitation</span>
+          </button>
+        </div>
+      )}
+
+      {/* Message Context Menu */}
+      {messageContextMenu && (
+        <div
+          className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 z-50"
+          style={{ top: messageContextMenu.y, left: messageContextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
+            onClick={() => startEditMessage(messageContextMenu.messageId)}
+          >
+            <span>✏️</span>
+            <span>Modifier</span>
+          </button>
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
+            onClick={() => deleteMessage(messageContextMenu.messageId)}
+          >
+            <span>🗑️</span>
+            <span>Supprimer</span>
           </button>
         </div>
       )}

@@ -31,4 +31,13 @@ export class MessagesService {
   async findOne(id: string): Promise<Message | null> {
     return this.messageModel.findById(id).populate('author', 'username').exec();
   }
+
+  async update(id: string, content: string): Promise<Message | null> {
+    await this.messageModel.findByIdAndUpdate(id, { content }, { new: true }).exec();
+    return this.messageModel.findById(id).populate('author', 'username').exec();
+  }
+
+  async remove(id: string): Promise<Message | null> {
+    return this.messageModel.findByIdAndDelete(id).exec();
+  }
 }
