@@ -47,6 +47,21 @@ const Channels = () => {
     }
   }, [token]);
 
+  // Restore selected channel from URL on page load
+  useEffect(() => {
+    if (channels.length === 0) return;
+    
+    const params = new URLSearchParams(window.location.search);
+    const channelId = params.get('channel');
+    
+    if (channelId && !selectedChannel) {
+      const channel = channels.find(c => c._id === channelId);
+      if (channel) {
+        handleChannelSelect(channel);
+      }
+    }
+  }, [channels]);
+
   // Handle join parameter from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -94,6 +109,17 @@ const Channels = () => {
     if (channel) {
       fetchMessages(channel._id);
       socketJoinChannel(channel._id);
+      
+      // Mettre à jour l'URL de façon discrète sans recharger la page
+      const params = new URLSearchParams(window.location.search);
+      params.set('channel', channel._id);
+      window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+    } else {
+      // Retirer le paramètre si aucun channel sélectionné
+      const params = new URLSearchParams(window.location.search);
+      params.delete('channel');
+      const query = params.toString();
+      window.history.replaceState({}, '', `${window.location.pathname}${query ? '?' + query : ''}`);
     }
   };
 
