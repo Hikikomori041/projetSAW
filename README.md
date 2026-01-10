@@ -173,7 +173,7 @@ Créer un fichier `.env` dans `apps/api/` :
 
 ```env
 MONGODB_URI=mongodb://localhost:27017/appli-saw
-JWT_SECRET=votre_secret_jwt_super_securise
+JWT_SECRET=your-secret-key
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=votre-email@example.com

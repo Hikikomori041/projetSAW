@@ -61,11 +61,16 @@ export class UsersController {
       throw new ForbiddenException('Only admins can ban users');
     }
     const reason = body.reason || 'Violation des règles de la plateforme';
+    
+    // Récupérer l'utilisateur AVANT le ban pour avoir le username original
+    const userBeforeBan = await this.usersService.findOne(id);
+    
     const bannedUser = await this.usersService.banUser(id, reason);
-    if (bannedUser) {
+    if (bannedUser && userBeforeBan) {
+      // Envoyer l'email avec le username ORIGINAL
       await this.emailService.sendUserBannedNotification(
-        bannedUser.email,
-        bannedUser.username,
+        userBeforeBan.email,
+        userBeforeBan.username,
         reason
       );
       // Notifier tous les clients connectés du bannissement

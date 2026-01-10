@@ -6,26 +6,23 @@ export class EmailService {
   private transporter;
 
   constructor() {
-    // Configuration pour un serveur SMTP de test (Ethereal Email)
+    // Configuration SMTP depuis les variables d'environnement
+    // Pour les tests, utilisez Ethereal Email (https://ethereal.email/)
     // En production, utilisez un vrai serveur SMTP (Gmail, SendGrid, etc.)
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'your-email@ethereal.email',
-        pass: 'your-password',
-      },
+        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        }
     });
-
-    // Pour les tests, vous pouvez créer un compte sur https://ethereal.email/
-    // Ou désactiver l'envoi d'emails en commentant le code ci-dessus
   }
 
   async sendMessageDeletedNotification(userEmail: string, username: string, messageContent: string, reason: string) {
     try {
       await this.transporter.sendMail({
-        from: '"Discord Clone Admin" <admin@discordclone.com>',
+        from: process.env.SMTP_FROM || '"Discord Clone Admin" <admin@discordclone.com>',
         to: userEmail,
         subject: 'Votre message a été supprimé',
         html: `
@@ -46,7 +43,7 @@ export class EmailService {
   async sendChannelDeletedNotification(userEmail: string, username: string, channelName: string, reason: string) {
     try {
       await this.transporter.sendMail({
-        from: '"Discord Clone Admin" <admin@discordclone.com>',
+        from: process.env.SMTP_FROM || '"Discord Clone Admin" <admin@discordclone.com>',
         to: userEmail,
         subject: 'Un salon a été supprimé',
         html: `
@@ -66,7 +63,7 @@ export class EmailService {
   async sendUserBannedNotification(userEmail: string, username: string, reason: string) {
     try {
       await this.transporter.sendMail({
-        from: '"Discord Clone Admin" <admin@discordclone.com>',
+        from: process.env.SMTP_FROM || '"Discord Clone Admin" <admin@discordclone.com>',
         to: userEmail,
         subject: 'Votre compte a été banni',
         html: `
