@@ -35,6 +35,11 @@ export class ChannelsController {
     return this.channelsService.joinChannel(id, req.user._id);
   }
 
+  @Post(':id/leave')
+  leave(@Param('id') id: string, @Request() req) {
+    return this.channelsService.leaveChannel(id, req.user._id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateChannelDto: UpdateChannelDto) {
     return this.channelsService.update(id, updateChannelDto);

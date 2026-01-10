@@ -1,13 +1,18 @@
-import type { ContextMenuState } from '../../types';
+import type { ContextMenuState, Channel } from '../../types';
 
 interface ChannelContextMenuProps {
   contextMenu: ContextMenuState;
+  channel: Channel | undefined;
+  userId: string;
   isAdmin: boolean;
   onCopyInvite: (channelId: string) => void;
+  onLeave: (channelId: string) => void;
   onDelete: (channelId: string) => void;
 }
 
-const ChannelContextMenu = ({ contextMenu, isAdmin, onCopyInvite, onDelete }: ChannelContextMenuProps) => {
+const ChannelContextMenu = ({ contextMenu, channel, userId, isAdmin, onCopyInvite, onLeave, onDelete }: ChannelContextMenuProps) => {
+  const isOwner = channel?.createdBy?._id === userId;
+
   return (
     <div
       className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 z-50"
@@ -21,13 +26,30 @@ const ChannelContextMenu = ({ contextMenu, isAdmin, onCopyInvite, onDelete }: Ch
         <span>🔗</span>
         <span>Copier le lien d'invitation</span>
       </button>
-      {isAdmin && (
+      {isOwner ? (
         <button
           className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
           onClick={() => onDelete(contextMenu.channelId)}
         >
           <span>🗑️</span>
           <span>Supprimer le salon</span>
+        </button>
+      ) : !isAdmin && (
+        <button
+          className="w-full px-4 py-2 text-left hover:bg-orange-900 transition-colors flex items-center gap-2 text-orange-400"
+          onClick={() => onLeave(contextMenu.channelId)}
+        >
+          <span>🚪</span>
+          <span>Quitter le salon</span>
+        </button>
+      )}
+      {isAdmin && !isOwner && (
+        <button
+          className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
+          onClick={() => onDelete(contextMenu.channelId)}
+        >
+          <span>🗑️</span>
+          <span>Supprimer le salon (Admin)</span>
         </button>
       )}
     </div>

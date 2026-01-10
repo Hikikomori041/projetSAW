@@ -41,7 +41,7 @@ export class ChannelsService implements OnModuleInit {
 
     return this.channelModel
       .find(filter)
-      .populate('createdBy', 'username')
+      .populate('createdBy', '_id username')
       .exec();
   }
 
@@ -86,6 +86,17 @@ export class ChannelsService implements OnModuleInit {
     const userIdStr = userId.toString();
     const uniqueIds = Array.from(new Set([...(channel.members ?? []), channel.createdBy, userIdStr].map(m => m.toString())));
     channel.members = uniqueIds.map(id => new Types.ObjectId(id));
+    await channel.save();
+    return channel.populate('createdBy', 'username');
+  }
+
+  async leaveChannel(channelId: string, userId: any): Promise<ChannelDocument> {
+    const channel = await this.channelModel.findById(channelId);
+    if (!channel) {
+      throw new NotFoundException('Channel not found');
+    }
+    const userIdStr = userId.toString();
+    channel.members = (channel.members ?? []).filter(m => m.toString() !== userIdStr);
     await channel.save();
     return channel.populate('createdBy', 'username');
   }

@@ -1,7 +1,7 @@
 export interface Channel {
   _id: string;
   name: string;
-  createdBy?: { username: string } | null;
+  createdBy?: { _id?: string; username: string } | null;
 }
 
 export interface MessageAuthor {

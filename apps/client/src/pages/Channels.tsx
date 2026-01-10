@@ -8,6 +8,8 @@ import { copyInviteLink } from '../utils/helpers';
 import type { DeleteModalState, ContextMenuState, MessageContextMenuState } from '../types';
 import JoinChannelModal from '../components/channels/JoinChannelModal';
 import AdminActionModal from '../components/channels/AdminActionModal';
+import LeaveChannelModal from '../components/channels/LeaveChannelModal';
+import DeleteOwnChannelModal from '../components/channels/DeleteOwnChannelModal';
 import ChannelContextMenu from '../components/channels/ChannelContextMenu';
 import MessageContextMenu from '../components/channels/MessageContextMenu';
 import UserPanel from '../components/channels/UserPanel';
@@ -19,7 +21,7 @@ import MessageInput from '../components/channels/MessageInput';
 
 const Channels = () => {
   const { userRole, username, userId, token, logout } = useAuth();
-  const { channels, selectedChannel, setSelectedChannel, fetchChannels, createChannel, deleteChannel, joinChannel } = useChannels();
+  const { channels, selectedChannel, setSelectedChannel, fetchChannels, createChannel, deleteChannel, joinChannel, leaveChannel } = useChannels();
   const { messages, setMessages, fetchMessages, sendMessage, updateMessage, deleteMessage } = useMessages();
   const { socket, setupMessageListeners, joinChannel: socketJoinChannel } = useSocket(token);
 
@@ -33,6 +35,8 @@ const Channels = () => {
   const [editingContent, setEditingContent] = useState<string>('');
   const [deleteModal, setDeleteModal] = useState<DeleteModalState | null>(null);
   const [deleteReason, setDeleteReason] = useState<string>('');
+  const [leaveChannelModal, setLeaveChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
+  const [deleteOwnChannelModal, setDeleteOwnChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
 
   // Fetch channels on mount
   useEffect(() => {
@@ -136,9 +140,56 @@ const Channels = () => {
   };
 
   const handleDeleteChannelRequest = (channelId: string) => {
-    setDeleteModal({ type: 'channel', id: channelId });
-    setDeleteReason('Violation des règles de la plateforme');
+    const channel = channels.find(c => c._id === channelId);
+    const isOwner = channel?.createdBy?._id === userId;
+    
+    if (isOwner) {
+      // Propriétaire : modal avec confirmation "SUPPRIMER"
+      setDeleteOwnChannelModal({
+        channelId,
+        channelName: channel?.name || 'ce salon'
+      });
+    } else {
+      // Admin : modal avec raison
+      setDeleteModal({ type: 'channel', id: channelId });
+      setDeleteReason('Violation des règles de la plateforme');
+    }
     setContextMenu(null);
+  };
+
+  const handleLeaveChannelRequest = (channelId: string) => {
+    const channel = channels.find(c => c._id === channelId);
+    setLeaveChannelModal({
+      channelId,
+      channelName: channel?.name || 'ce salon'
+    });
+    setContextMenu(null);
+  };
+
+  const handleLeaveChannel = async () => {
+    if (!leaveChannelModal) return;
+    try {
+      await leaveChannel(leaveChannelModal.channelId);
+      if (selectedChannel?._id === leaveChannelModal.channelId) {
+        setSelectedChannel(null);
+      }
+      setLeaveChannelModal(null);
+    } catch (error) {
+      alert('Erreur lors de la sortie du salon');
+    }
+  };
+
+  const handleDeleteOwnChannel = async () => {
+    if (!deleteOwnChannelModal) return;
+    try {
+      await deleteChannel(deleteOwnChannelModal.channelId);
+      if (selectedChannel?._id === deleteOwnChannelModal.channelId) {
+        setSelectedChannel(null);
+      }
+      setDeleteOwnChannelModal(null);
+    } catch (error) {
+      alert('Erreur lors de la suppression du salon');
+    }
   };
 
   const handleMessageContextMenu = (e: React.MouseEvent, messageId: string, messageAuthorId?: string) => {
@@ -240,6 +291,24 @@ const Channels = () => {
         />
       )}
 
+      {/* Leave Channel Modal */}
+      {leaveChannelModal && (
+        <LeaveChannelModal
+          channelName={leaveChannelModal.channelName}
+          onConfirm={handleLeaveChannel}
+          onCancel={() => setLeaveChannelModal(null)}
+        />
+      )}
+
+      {/* Delete Own Channel Modal */}
+      {deleteOwnChannelModal && (
+        <DeleteOwnChannelModal
+          channelName={deleteOwnChannelModal.channelName}
+          onConfirm={handleDeleteOwnChannel}
+          onCancel={() => setDeleteOwnChannelModal(null)}
+        />
+      )}
+
       {/* Sidebar */}
       <div className="w-80 bg-gray-800 flex flex-col h-full">
         <div className="p-4 border-b border-gray-700">
@@ -321,8 +390,11 @@ const Channels = () => {
       {contextMenu && (
         <ChannelContextMenu
           contextMenu={contextMenu}
+          channel={channels.find(c => c._id === contextMenu.channelId)}
+          userId={userId}
           isAdmin={userRole === 'admin'}
           onCopyInvite={handleCopyInvite}
+          onLeave={handleLeaveChannelRequest}
           onDelete={handleDeleteChannelRequest}
         />
       )}

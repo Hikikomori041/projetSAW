@@ -57,6 +57,18 @@ export const useChannels = () => {
     }
   };
 
+  const leaveChannel = async (channelId: string) => {
+    try {
+      await axios.post(`http://localhost:3000/channels/${channelId}/leave`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      await fetchChannels();
+    } catch (error) {
+      console.error('Failed to leave channel', error);
+      throw error;
+    }
+  };
+
   return {
     channels,
     selectedChannel,
@@ -65,5 +77,6 @@ export const useChannels = () => {
     createChannel,
     deleteChannel,
     joinChannel,
+    leaveChannel,
   };
 };
