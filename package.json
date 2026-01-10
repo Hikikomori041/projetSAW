@@ -9,7 +9,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test --workspace=api",
+    "test:unit": "npm run test:unit --workspace=api",
+    "test:e2e": "npm run test:e2e --workspace=api",
+    "test:all": "npm run test:all --workspace=api",
+    "test:coverage": "npm run test:cov --workspace=api"
   },
   "keywords": [],
   "author": "",
