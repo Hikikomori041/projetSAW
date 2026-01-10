@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -29,7 +29,16 @@ const Dashboard = () => {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [userRole, setUserRole] = useState<string>('');
   const [socket, setSocket] = useState<Socket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -58,11 +67,9 @@ const Dashboard = () => {
 
   const fetchChannels = async () => {
     try {
-      console.log('Fetching channels...');
       const response = await axios.get('http://localhost:3001/channels', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      console.log('Channels response:', response.data);
       setChannels(response.data);
     } catch (error) {
       console.error('Failed to fetch channels', error);
@@ -242,6 +249,7 @@ const Dashboard = () => {
                     </div>
                   ))
                 )}
+                <div ref={messagesEndRef} />
               </div>
             </div>
             
