@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [pendingJoinChannelId, setPendingJoinChannelId] = useState<string | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ channelId: string; x: number; y: number } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -172,8 +173,31 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const handleContextMenu = (e: React.MouseEvent, channelId: string) => {
+    e.preventDefault();
+    setContextMenu({ channelId, x: e.clientX, y: e.clientY });
+  };
+
+  const copyInviteLink = (channelId: string) => {
+    const inviteLink = `${window.location.origin}/dashboard?join=${channelId}`;
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      alert('Lien d\'invitation copié dans le presse-papier !');
+      setContextMenu(null);
+    }).catch(() => {
+      alert('Erreur lors de la copie du lien');
+    });
+  };
+
+  useEffect(() => {
+    const handleClickOutside = () => setContextMenu(null);
+    if (contextMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenu]);
+
   return (
-    <div className="flex h-screen bg-gray-900 text-white">
+    <div className="flex h-screen bg-gray-900 text-white" onClick={() => setContextMenu(null)}>
       {pendingJoinChannelId && (
         <div className="modal modal-open">
           <div className="modal-box bg-gray-800 text-white">
@@ -204,6 +228,7 @@ const Dashboard = () => {
                   selectedChannel?._id === channel._id ? 'bg-indigo-600 text-white' : 'text-gray-300'
                 }`}
                 onClick={() => handleChannelSelect(channel)}
+                onContextMenu={(e) => handleContextMenu(e, channel._id)}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-gray-400">#</span>
@@ -344,6 +369,23 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 z-50"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
+            onClick={() => copyInviteLink(contextMenu.channelId)}
+          >
+            <span>🔗</span>
+            <span>Copier le lien d'invitation</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
