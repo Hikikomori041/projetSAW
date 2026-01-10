@@ -51,7 +51,7 @@ export class UsersService {
   async banUser(id: string, reason: string): Promise<UserDocument | null> {
     return this.userModel.findByIdAndUpdate(
       id,
-      { banned: true, bannedReason: reason },
+      { banned: true, bannedReason: reason, username: '[supprimé]' },
       { new: true }
     ).exec();
   }

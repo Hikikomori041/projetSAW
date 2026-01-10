@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChannelsService } from './channels.service';
 import { ChannelsController } from './channels.controller';
@@ -11,7 +11,7 @@ import { AuthModule } from '../auth/auth.module';
   imports: [
     MongooseModule.forFeature([{ name: Channel.name, schema: ChannelSchema }]),
     EmailModule,
-    UsersModule,
+    forwardRef(() => UsersModule),
     AuthModule,
   ],
   providers: [ChannelsService],

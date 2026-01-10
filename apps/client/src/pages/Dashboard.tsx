@@ -85,6 +85,15 @@ const Dashboard = () => {
       setMessages(prev => prev.filter(m => m._id !== messageId));
     });
 
+    newSocket.on('userBanned', (data: { userId: string }) => {
+      // Mettre à jour tous les messages de l'utilisateur banni
+      setMessages(prev => prev.map(m => 
+        m.author._id === data.userId 
+          ? { ...m, author: { ...m.author, username: '[supprimé]' } }
+          : m
+      ));
+    });
+
     return () => {
       newSocket.disconnect();
     };
@@ -435,44 +444,50 @@ const Dashboard = () => {
                     <span>Aucun message dans ce salon. Soyez le premier à écrire !</span>
                   </div>
                 ) : (
-                  messages.map((message) => (
-                    <div 
-                      key={message._id} 
-                      className="chat chat-start"
-                      onContextMenu={(e) => handleMessageContextMenu(e, message._id, message.author.username)}
-                    >
-                      <div className="chat-header text-gray-400 text-sm">
-                        {message.author.username}
-                        <time className="text-xs opacity-50 ml-2">
-                          {new Date(message.createdAt).toLocaleString()}
-                        </time>
+                  messages.map((message) => {
+                    const isOwnMessage = message.author.username === username;
+                    const isBanned = message.author.username === '[supprimé]';
+                    return (
+                      <div 
+                        key={message._id} 
+                        className={`chat ${isOwnMessage ? 'chat-end' : 'chat-start'}`}
+                        onContextMenu={(e) => handleMessageContextMenu(e, message._id, message.author.username)}
+                      >
+                        <div className="chat-header text-gray-400 text-sm">
+                          <span className={isBanned ? 'italic opacity-70' : ''}>
+                            {message.author.username}
+                          </span>
+                          <time className="text-xs opacity-50 ml-2">
+                            {new Date(message.createdAt).toLocaleString()}
+                          </time>
+                        </div>
+                        {editingMessageId === message._id ? (
+                          <div className="flex items-center gap-2 mt-1">
+                            <input
+                              type="text"
+                              value={editingContent}
+                              onChange={(e) => setEditingContent(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && saveEditMessage(message._id)}
+                              className="input input-sm input-bordered flex-1 bg-gray-700 text-white"
+                              autoFocus
+                            />
+                            <button 
+                              onClick={() => saveEditMessage(message._id)}
+                              className="btn btn-sm btn-success"
+                            >✓</button>
+                            <button 
+                              onClick={cancelEditMessage}
+                              className="btn btn-sm btn-error"
+                            >✕</button>
+                          </div>
+                        ) : (
+                          <div className={`chat-bubble ${isOwnMessage ? 'chat-bubble-success' : 'chat-bubble-primary'}`}>
+                            {message.content}
+                          </div>
+                        )}
                       </div>
-                      {editingMessageId === message._id ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <input
-                            type="text"
-                            value={editingContent}
-                            onChange={(e) => setEditingContent(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && saveEditMessage(message._id)}
-                            className="input input-sm input-bordered flex-1 bg-gray-700 text-white"
-                            autoFocus
-                          />
-                          <button 
-                            onClick={() => saveEditMessage(message._id)}
-                            className="btn btn-sm btn-success"
-                          >✓</button>
-                          <button 
-                            onClick={cancelEditMessage}
-                            className="btn btn-sm btn-error"
-                          >✕</button>
-                        </div>
-                      ) : (
-                        <div className="chat-bubble chat-bubble-primary">
-                          {message.content}
-                        </div>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })
                 )}
                 <div ref={messagesEndRef} />
               </div>
@@ -553,9 +568,10 @@ const Dashboard = () => {
           {(() => {
             const message = messages.find(m => m._id === messageContextMenu.messageId);
             const isOwnMessage = message?.author.username === username;
+            const isBanned = message?.author.username === '[supprimé]';
             return (
               <>
-                {isOwnMessage && (
+                {isOwnMessage && !isBanned && (
                   <button
                     className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
                     onClick={() => startEditMessage(messageContextMenu.messageId)}
@@ -571,7 +587,7 @@ const Dashboard = () => {
                   <span>🗑️</span>
                   <span>Supprimer</span>
                 </button>
-                {userRole === 'admin' && !isOwnMessage && message && (
+                {userRole === 'admin' && !isOwnMessage && !isBanned && message && (
                   <button
                     className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-orange-400"
                     onClick={() => banUser(message.author.username, message.author._id)}

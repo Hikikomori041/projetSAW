@@ -4,12 +4,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailService } from '../email/email.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { MessagesGateway } from '../messages/messages.gateway';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
+    private readonly messagesGateway: MessagesGateway,
   ) {}
 
   @Post()
@@ -51,6 +53,8 @@ export class UsersController {
         bannedUser.username,
         reason
       );
+      // Notifier tous les clients connectés du bannissement
+      this.messagesGateway.server.emit('userBanned', { userId: id });
     }
     return { banned: true };
   }
