@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,7 +17,7 @@ const Register = () => {
       localStorage.setItem('token', response.data.access_token);
       navigate('/');
     } catch (error) {
-      alert('Registration failed');
+      setToastMessage('Échec de l\'inscription');
     }
   };
 
@@ -89,6 +91,14 @@ const Register = () => {
           </div>
         </div>
       </div>
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type="error"
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </div>
   );
 };

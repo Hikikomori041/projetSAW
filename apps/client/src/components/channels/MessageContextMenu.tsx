@@ -16,6 +16,7 @@ const MessageContextMenu = ({ messageContextMenu, messages, userId, isAdmin, onE
   const authorName = getAuthorName(message?.author);
   const isOwnMessage = message?.author?._id === userId;
   const isBanned = authorName === '[supprimé]';
+  const isMessageDeleted = (message?.content || '').trim() === '[supprimé]';
 
   return (
     <div
@@ -23,7 +24,7 @@ const MessageContextMenu = ({ messageContextMenu, messages, userId, isAdmin, onE
       style={{ top: messageContextMenu.y, left: messageContextMenu.x }}
       onClick={(e) => e.stopPropagation()}
     >
-      {isOwnMessage && !isBanned && (
+      {isOwnMessage && !isBanned && !isMessageDeleted && (
         <button
           className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
           onClick={() => onEdit(messageContextMenu.messageId)}
@@ -32,13 +33,15 @@ const MessageContextMenu = ({ messageContextMenu, messages, userId, isAdmin, onE
           <span>Modifier</span>
         </button>
       )}
-      <button
-        className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
-        onClick={() => onDelete(messageContextMenu.messageId)}
-      >
-        <span>🗑️</span>
-        <span>Supprimer</span>
-      </button>
+      {!isMessageDeleted && (
+        <button
+          className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"
+          onClick={() => onDelete(messageContextMenu.messageId)}
+        >
+          <span>🗑️</span>
+          <span>Supprimer</span>
+        </button>
+      )}
       {isAdmin && !isOwnMessage && !isBanned && message?.author && (
         <button
           className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-orange-400"

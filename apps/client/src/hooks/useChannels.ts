@@ -26,7 +26,8 @@ export const useChannels = () => {
       });
       await fetchChannels();
     } catch (error) {
-      alert('Failed to create channel');
+      console.error('Failed to create channel', error);
+      throw error;
     }
   };
 

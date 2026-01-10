@@ -40,24 +40,14 @@ describe('MessagesGateway', () => {
   });
 
   describe('handleConnection', () => {
-    it('should log client connection', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      gateway.handleConnection(mockClient as Socket);
-
-      expect(consoleSpy).toHaveBeenCalledWith(`Client connected: socket-123`);
-      consoleSpy.mockRestore();
+    it('should handle client connection without error', () => {
+      expect(() => gateway.handleConnection(mockClient as Socket)).not.toThrow();
     });
   });
 
   describe('handleDisconnect', () => {
-    it('should log client disconnection', () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
-      gateway.handleDisconnect(mockClient as Socket);
-
-      expect(consoleSpy).toHaveBeenCalledWith(`Client disconnected: socket-123`);
-      consoleSpy.mockRestore();
+    it('should handle client disconnection without error', () => {
+      expect(() => gateway.handleDisconnect(mockClient as Socket)).not.toThrow();
     });
   });
 

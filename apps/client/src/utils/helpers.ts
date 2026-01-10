@@ -7,11 +7,11 @@ export const getAuthorName = (author?: MessageAuthor | null): string => {
   return author.username;
 };
 
-export const copyInviteLink = (channelId: string): void => {
+export const copyInviteLink = (channelId: string, onSuccess: () => void, onError: () => void): void => {
   const inviteLink = `${window.location.origin}/channels?join=${channelId}`;
   navigator.clipboard.writeText(inviteLink).then(() => {
-    alert('Lien d\'invitation copié dans le presse-papier !');
+    onSuccess();
   }).catch(() => {
-    alert('Erreur lors de la copie du lien');
+    onError();
   });
 };

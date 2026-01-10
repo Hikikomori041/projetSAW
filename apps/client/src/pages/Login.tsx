@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Toast from '../components/Toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -14,7 +16,7 @@ const Login = () => {
       localStorage.setItem('token', response.data.access_token);
       navigate('/');
     } catch (error) {
-      alert('Login failed');
+      setToastMessage('Échec de la connexion');
     }
   };
 
@@ -74,6 +76,14 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type="error"
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </div>
   );
 };

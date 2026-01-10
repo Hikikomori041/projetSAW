@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import Toast from '../components/Toast';
 
 interface DecodedToken {
   sub: string;
@@ -21,6 +22,7 @@ const Settings = () => {
   const [success, setSuccess] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -108,7 +110,6 @@ const Settings = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       localStorage.removeItem('token');
-      alert('Compte supprimé. Vos messages et salons apparaîtront comme [supprimé].');
       navigate('/');
     } catch (err) {
       console.error('Failed to delete account', err);
@@ -243,6 +244,13 @@ const Settings = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
       )}
     </div>
   );

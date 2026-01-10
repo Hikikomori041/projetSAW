@@ -18,6 +18,7 @@ import CreateChannelInput from '../components/channels/CreateChannelInput';
 import ChannelHeader from '../components/channels/ChannelHeader';
 import MessageList from '../components/channels/MessageList';
 import MessageInput from '../components/channels/MessageInput';
+import Toast from '../components/Toast';
 
 const Channels = () => {
   const { userRole, username, userId, token, logout } = useAuth();
@@ -37,6 +38,7 @@ const Channels = () => {
   const [deleteReason, setDeleteReason] = useState<string>('');
   const [leaveChannelModal, setLeaveChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
   const [deleteOwnChannelModal, setDeleteOwnChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch channels on mount
   useEffect(() => {
@@ -103,8 +105,13 @@ const Channels = () => {
 
   const handleCreateChannel = async () => {
     if (!newChannelName.trim()) return;
-    await createChannel(newChannelName);
-    setNewChannelName('');
+    try {
+      await createChannel(newChannelName);
+      setNewChannelName('');
+      setToastMessage('Salon créé avec succès');
+    } catch (error) {
+      setToastMessage('Erreur lors de la création du salon');
+    }
   };
 
   const acceptJoin = async () => {
@@ -117,7 +124,7 @@ const Channels = () => {
       }
       clearJoinParam();
     } catch (error) {
-      alert('Impossible de rejoindre ce salon');
+      setToastMessage('Impossible de rejoindre ce salon');
     } finally {
       setJoinLoading(false);
     }
@@ -135,7 +142,11 @@ const Channels = () => {
   };
 
   const handleCopyInvite = (channelId: string) => {
-    copyInviteLink(channelId);
+    copyInviteLink(
+      channelId,
+      () => setToastMessage('Lien d\'invitation copié !'),
+      () => setToastMessage('Erreur lors de la copie')
+    );
     setContextMenu(null);
   };
 
@@ -175,7 +186,7 @@ const Channels = () => {
       }
       setLeaveChannelModal(null);
     } catch (error) {
-      alert('Erreur lors de la sortie du salon');
+      setToastMessage('Erreur lors de la sortie du salon');
     }
   };
 
@@ -188,7 +199,7 @@ const Channels = () => {
       }
       setDeleteOwnChannelModal(null);
     } catch (error) {
-      alert('Erreur lors de la suppression du salon');
+      setToastMessage('Erreur lors de la suppression du salon');
     }
   };
 
@@ -202,6 +213,10 @@ const Channels = () => {
   const startEditMessage = (messageId: string) => {
     const message = messages.find(m => m._id === messageId);
     if (message) {
+      // Ne pas permettre l'édition d'un message déjà anonymisé
+      if ((message.content || '').trim() === '[supprimé]') {
+        return;
+      }
       setEditingMessageId(messageId);
       setEditingContent(message.content);
       setMessageContextMenu(null);
@@ -215,7 +230,7 @@ const Channels = () => {
       setEditingMessageId(null);
       setEditingContent('');
     } catch (error) {
-      alert('Erreur lors de la modification du message');
+      setToastMessage('Erreur lors de la modification du message');
     }
   };
 
@@ -229,12 +244,27 @@ const Channels = () => {
     if (!message) return;
     
     if (userRole === 'admin' && message.author?._id !== userId) {
+      // Si l'auteur est supprimé/banni/masqué, ne pas demander de justification ni envoyer d'email
+      const authorIsDeleted = !message.author 
+        || message.author.banned 
+        || (typeof message.author.username === 'string' && message.author.username.startsWith('[supprimé'));
+
+      if (authorIsDeleted) {
+        // Remplacer directement le contenu du message par "[supprimé]"
+        updateMessage(messageId, '[supprimé]');
+        setToastMessage('Message supprimé');
+        setMessageContextMenu(null);
+        return;
+      }
+
+      // Cas normal admin: demander une justification
       setDeleteModal({ type: 'message', id: messageId });
       setDeleteReason('Violation des règles de la communauté');
       setMessageContextMenu(null);
     } else {
-      if (!confirm('Voulez-vous vraiment supprimer ce message ?')) return;
+      // Suppression de son propre message
       deleteMessage(messageId);
+      setToastMessage('Message supprimé');
       setMessageContextMenu(null);
     }
   };
@@ -257,12 +287,12 @@ const Channels = () => {
           { reason: deleteReason },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert(`Utilisateur ${deleteModal.username} banni avec succès`);
+        setToastMessage(`Utilisateur ${deleteModal.username} banni`);
       }
       setDeleteModal(null);
       setDeleteReason('');
     } catch (error) {
-      alert('Erreur lors de l\'exécution de l\'action');
+      setToastMessage('Erreur lors de l\'action');
     }
   };
 
@@ -408,6 +438,13 @@ const Channels = () => {
           onEdit={startEditMessage}
           onDelete={handleDeleteMessageRequest}
           onBan={handleBanUser}
+        />
+      )}
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
         />
       )}
     </div>

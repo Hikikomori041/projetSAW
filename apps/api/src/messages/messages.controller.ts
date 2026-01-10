@@ -38,8 +38,20 @@ export class MessagesController {
     if (!message) {
       throw new ForbiddenException('Message not found');
     }
-    const authorId = (message.author as any)._id?.toString() || message.author.toString();
-    if (authorId !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Gérer le cas où l'auteur a été supprimé (author peut être null)
+    let authorId: string | null = null;
+    const author: any = (message as any).author;
+    if (author && typeof author === 'object' && (author as any)._id) {
+      authorId = (author as any)._id.toString();
+    } else if (typeof author === 'string') {
+      authorId = author.toString();
+    } else {
+      authorId = null;
+    }
+
+    const isOwner = authorId && authorId === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
       throw new ForbiddenException('You can only edit your own messages');
     }
     const updated = await this.messagesService.update(id, body.content);
@@ -53,19 +65,31 @@ export class MessagesController {
     if (!message) {
       throw new ForbiddenException('Message not found');
     }
-    const authorId = (message.author as any)._id?.toString() || message.author.toString();
-    if (authorId !== req.user._id.toString() && req.user.role !== 'admin') {
+    // Gérer le cas où l'auteur a été supprimé (author peut être null)
+    let authorId: string | null = null;
+    const author: any = (message as any).author;
+    if (author && typeof author === 'object' && (author as any)._id) {
+      authorId = (author as any)._id.toString();
+    } else if (typeof author === 'string') {
+      authorId = author.toString();
+    } else {
+      authorId = null;
+    }
+
+    const isOwner = authorId && authorId === req.user._id.toString();
+    const isAdmin = req.user.role === 'admin';
+    if (!isOwner && !isAdmin) {
       throw new ForbiddenException('You can only delete your own messages');
     }
     
     // Si c'est un admin qui supprime le message de quelqu'un d'autre, envoyer un email
-    if (req.user.role === 'admin' && authorId !== req.user._id.toString()) {
-      const author = await this.usersService.findOne(authorId);
-      if (author) {
+    if (isAdmin && authorId && authorId !== req.user._id.toString()) {
+      const authorUser = await this.usersService.findOne(authorId);
+      if (authorUser) {
         const reason = body.reason || 'Violation des règles de la communauté';
         await this.emailService.sendMessageDeletedNotification(
-          author.email,
-          author.username,
+          authorUser.email,
+          authorUser.username,
           message.content,
           reason
         );
