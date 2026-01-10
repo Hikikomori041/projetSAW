@@ -3,7 +3,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Channels from './pages/Channels';
-import TestDaisy from './components/TestDaisy';
 import Settings from './pages/Settings';
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
         <Route path="/channels" element={<Channels />} />
         <Route path="/dashboard" element={<Navigate to="/channels" replace />} />
         <Route path="/settings" element={<Settings />} />
-        <Route path="/test" element={<TestDaisy />} />
       </Routes>
     </Router>
   );
