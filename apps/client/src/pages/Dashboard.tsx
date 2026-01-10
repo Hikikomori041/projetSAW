@@ -18,6 +18,7 @@ interface Message {
 }
 
 interface DecodedToken {
+  username: string;
   role: string;
 }
 
@@ -28,6 +29,7 @@ const Dashboard = () => {
   const [newMessage, setNewMessage] = useState('');
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
   const [userRole, setUserRole] = useState<string>('');
+  const [username, setUsername] = useState<string>('');
   const [socket, setSocket] = useState<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -48,6 +50,7 @@ const Dashboard = () => {
     }
     const decoded: DecodedToken = jwtDecode(token);
     setUserRole(decoded.role);
+    setUsername(decoded.username);
     fetchChannels();
 
     // Connect to socket
@@ -148,14 +151,10 @@ const Dashboard = () => {
                 }`}
                 onClick={() => handleChannelSelect(channel)}
               >
-                <div className="flex items-center">
-                  <span className="text-gray-400 mr-2">#</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">#</span>
                   <span className="truncate">{channel.name}</span>
-                  {userRole === 'admin' && (
-                    <span className="ml-auto text-xs text-gray-400">
-                      par {channel.createdBy.username}
-                    </span>
-                  )}
+                  <span className="text-xs text-gray-400">par {channel.createdBy.username}</span>
                 </div>
               </li>
             ))}
@@ -189,12 +188,12 @@ const Dashboard = () => {
           <div className="flex items-center space-x-3 mb-3">
             <div className="avatar placeholder">
               <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
-                <span className="text-xs">U</span>
+                <span className="text-xs">{username.charAt(0).toUpperCase()}</span>
               </div>
             </div>
             <div>
-              <div className="text-sm font-medium text-gray-200">Utilisateur</div>
-              <div className="text-xs text-gray-400">{userRole === 'admin' ? 'Administrateur' : 'Membre'}</div>
+              <div className="text-sm font-medium text-gray-200">{username}</div>
+              <div className="text-xs text-gray-400">{userRole === 'admin' ? 'Administrateur' : ''}</div>
             </div>
           </div>
           <button 
@@ -286,7 +285,6 @@ const Dashboard = () => {
                 <p className="text-gray-400 mb-6">
                   Choisissez un salon dans la sidebar pour commencer à discuter
                 </p>
-                <div className="badge badge-primary badge-lg">Prochainement : Chat en temps réel</div>
               </div>
             </div>
           </div>
