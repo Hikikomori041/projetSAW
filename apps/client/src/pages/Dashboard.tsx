@@ -359,16 +359,33 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen bg-gray-900 text-white" onClick={() => setContextMenu(null)}>
       {pendingJoinChannelId && (
-        <div className="modal modal-open">
-          <div className="modal-box bg-gray-800 text-white">
-            <h3 className="font-bold text-lg mb-2">Rejoindre ce salon ?</h3>
-            <p className="mb-4 text-gray-300">Vous avez été invité à rejoindre ce salon. Voulez-vous l'ajouter à votre liste ?</p>
-            <div className="modal-action">
-              <button className="btn btn-primary" onClick={acceptJoin} disabled={joinLoading}>Accepter</button>
-              <button className="btn" onClick={declineJoin} disabled={joinLoading}>Refuser</button>
+        (() => {
+          const alreadyInChannel = channels.some(c => c._id === pendingJoinChannelId);
+          return (
+            <div className="modal modal-open">
+              <div className="modal-box bg-gray-800 text-white">
+                <h3 className="font-bold text-lg mb-2">
+                  {alreadyInChannel ? 'Vous êtes déjà dans ce salon' : 'Rejoindre ce salon ?'}
+                </h3>
+                <p className="mb-4 text-gray-300">
+                  {alreadyInChannel
+                    ? 'Ce salon est déjà dans votre liste.'
+                    : 'Vous avez été invité à rejoindre ce salon. Voulez-vous l\'ajouter à votre liste ?'}
+                </p>
+                <div className="modal-action">
+                  {alreadyInChannel ? (
+                    <button className="btn" onClick={declineJoin}>Fermer</button>
+                  ) : (
+                    <>
+                      <button className="btn btn-primary" onClick={acceptJoin} disabled={joinLoading}>Accepter</button>
+                      <button className="btn" onClick={declineJoin} disabled={joinLoading}>Refuser</button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()
       )}
 
       {/* Sidebar */}
@@ -390,10 +407,19 @@ const Dashboard = () => {
                 onClick={() => handleChannelSelect(channel)}
                 onContextMenu={(e) => handleContextMenu(e, channel._id)}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400">#</span>
-                  <span className="truncate">{channel.name}</span>
-                  <span className="text-xs text-gray-400">par {getAuthorName(channel.createdBy as any)}</span>
+                <div className="flex items-center gap-2 justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-gray-400">#</span>
+                    <span className="truncate">{channel.name}</span>
+                    <span className="text-xs text-gray-400">par {getAuthorName(channel.createdBy as any)}</span>
+                  </div>
+                  <button
+                    className="btn btn-ghost btn-xs text-gray-400 hover:text-white"
+                    title="Copier le lien d'invitation"
+                    onClick={(e) => { e.stopPropagation(); copyInviteLink(channel._id); }}
+                  >
+                    🔗
+                  </button>
                 </div>
               </li>
             ))}
