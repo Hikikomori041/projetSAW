@@ -31,6 +31,8 @@ const Dashboard = () => {
   const [userRole, setUserRole] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [pendingJoinChannelId, setPendingJoinChannelId] = useState<string | null>(null);
+  const [joinLoading, setJoinLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -53,8 +55,14 @@ const Dashboard = () => {
     setUsername(decoded.username);
     fetchChannels();
 
+    const params = new URLSearchParams(window.location.search);
+    const joinParam = params.get('join');
+    if (joinParam) {
+      setPendingJoinChannelId(joinParam);
+    }
+
     // Connect to socket
-    const newSocket = io('http://localhost:3001', {
+    const newSocket = io('http://localhost:3000', {
       auth: { token },
     });
     setSocket(newSocket);
@@ -70,24 +78,57 @@ const Dashboard = () => {
 
   const fetchChannels = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/channels', {
+      const response = await axios.get('http://localhost:3000/channels', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setChannels(response.data);
+      return response.data as Channel[];
     } catch (error) {
       console.error('Failed to fetch channels', error);
+      return [] as Channel[];
     }
   };
 
   const fetchMessages = async (channelId: string) => {
     try {
-      const response = await axios.get(`http://localhost:3001/messages/${channelId}`, {
+      const response = await axios.get(`http://localhost:3000/messages/${channelId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setMessages(response.data);
     } catch (error) {
       console.error('Failed to fetch messages', error);
     }
+  };
+
+  const acceptJoin = async () => {
+    if (!pendingJoinChannelId) return;
+    setJoinLoading(true);
+    try {
+      await axios.post(`http://localhost:3000/channels/${pendingJoinChannelId}/join`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      const updatedChannels = await fetchChannels();
+      const joined = updatedChannels.find(c => c._id === pendingJoinChannelId);
+      if (joined) {
+        handleChannelSelect(joined);
+      }
+      const params = new URLSearchParams(window.location.search);
+      params.delete('join');
+      window.history.replaceState({}, document.title, `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
+      setPendingJoinChannelId(null);
+    } catch (error) {
+      console.error('Failed to join channel', error);
+      alert('Impossible de rejoindre ce salon');
+    } finally {
+      setJoinLoading(false);
+    }
+  };
+
+  const declineJoin = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete('join');
+    window.history.replaceState({}, document.title, `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
+    setPendingJoinChannelId(null);
   };
 
   const handleChannelSelect = (channel: Channel) => {
@@ -101,7 +142,7 @@ const Dashboard = () => {
   const sendMessage = async () => {
     if (!selectedChannel || !newMessage.trim()) return;
     try {
-      await axios.post('http://localhost:3001/messages', {
+      await axios.post('http://localhost:3000/messages', {
         content: newMessage,
         channelId: selectedChannel._id,
       }, {
@@ -116,7 +157,7 @@ const Dashboard = () => {
 
   const createChannel = async () => {
     try {
-      await axios.post('http://localhost:3001/channels', { name: newChannelName }, {
+      await axios.post('http://localhost:3000/channels', { name: newChannelName }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setNewChannelName('');
@@ -133,6 +174,19 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-900 text-white">
+      {pendingJoinChannelId && (
+        <div className="modal modal-open">
+          <div className="modal-box bg-gray-800 text-white">
+            <h3 className="font-bold text-lg mb-2">Rejoindre ce salon ?</h3>
+            <p className="mb-4 text-gray-300">Vous avez été invité à rejoindre ce salon. Voulez-vous l'ajouter à votre liste ?</p>
+            <div className="modal-action">
+              <button className="btn btn-primary" onClick={acceptJoin} disabled={joinLoading}>Accepter</button>
+              <button className="btn" onClick={declineJoin} disabled={joinLoading}>Refuser</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div className="w-80 bg-gray-800 flex flex-col h-full">
         <div className="p-4 border-b border-gray-700">

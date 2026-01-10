@@ -15,13 +15,18 @@ export class ChannelsController {
   }
 
   @Get()
-  findAll() {
-    return this.channelsService.findAll();
+  findAll(@Request() req) {
+    return this.channelsService.findAllForUser(req.user._id, req.user.role);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.channelsService.findOne(id);
+  findOne(@Param('id') id: string, @Request() req) {
+    return this.channelsService.findOneAuthorized(id, req.user._id, req.user.role);
+  }
+
+  @Post(':id/join')
+  join(@Param('id') id: string, @Request() req) {
+    return this.channelsService.joinChannel(id, req.user._id);
   }
 
   @Patch(':id')

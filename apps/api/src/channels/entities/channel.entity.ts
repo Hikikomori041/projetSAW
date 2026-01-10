@@ -11,6 +11,9 @@ export class Channel {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   createdBy: Types.ObjectId;
 
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+  members: Types.ObjectId[];
+
   @Prop({ default: Date.now })
   createdAt: Date;
 }
