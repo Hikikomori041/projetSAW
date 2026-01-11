@@ -15,8 +15,20 @@ const Login = () => {
       const response = await axios.post('http://localhost:3000/auth/login', { email, password });
       localStorage.setItem('token', response.data.access_token);
       navigate('/');
-    } catch (error) {
-      setToastMessage('Échec de la connexion');
+    } catch (error: any) {
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        setToastMessage('Connexion au serveur impossible');
+      } else if (error.response?.status === 401) {
+        setToastMessage('Identifiants invalides');
+      } else if (error.response?.status === 403) {
+        // Compte banni - afficher le message du serveur si disponible
+        const message = error.response?.data?.message || 'Compte banni';
+        setToastMessage(message);
+      } else if (error.response?.status >= 500) {
+        setToastMessage('Erreur serveur, réessayez plus tard');
+      } else {
+        setToastMessage('Échec de la connexion');
+      }
     }
   };
 

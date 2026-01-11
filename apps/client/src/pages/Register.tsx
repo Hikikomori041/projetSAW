@@ -16,8 +16,20 @@ const Register = () => {
       const response = await axios.post('http://localhost:3000/auth/register', { username, email, password });
       localStorage.setItem('token', response.data.access_token);
       navigate('/');
-    } catch (error) {
-      setToastMessage('Échec de l\'inscription');
+    } catch (error: any) {
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        setToastMessage('Connexion au serveur impossible');
+      } else if (error.response?.status === 409) {
+        // Conflit - email ou username déjà utilisé
+        const message = error.response?.data?.message || 'Email ou nom d\'utilisateur déjà utilisé';
+        setToastMessage(message);
+      } else if (error.response?.status === 400) {
+        setToastMessage('Données invalides');
+      } else if (error.response?.status >= 500) {
+        setToastMessage('Erreur serveur, réessayez plus tard');
+      } else {
+        setToastMessage('Échec de l\'inscription');
+      }
     }
   };
 

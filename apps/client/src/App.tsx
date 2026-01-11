@@ -12,9 +12,10 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/signin" element={<Navigate to="/register" replace />} />
         <Route path="/channels" element={<Channels />} />
-        <Route path="/dashboard" element={<Navigate to="/channels" replace />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/account" element={<Navigate to="/settings" replace />} />
       </Routes>
     </Router>
   );

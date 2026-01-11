@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
@@ -13,6 +13,18 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<{ access_token: string }> {
+    // Vérifier si l'email existe déjà
+    const existingEmail = await this.usersService.findByEmail(registerDto.email);
+    if (existingEmail) {
+      throw new ConflictException('Email déjà utilisé');
+    }
+    
+    // Vérifier si le username existe déjà
+    const existingUsername = await this.usersService.findByUsername(registerDto.username);
+    if (existingUsername) {
+      throw new ConflictException('Nom d\'utilisateur déjà utilisé');
+    }
+    
     const user = await this.usersService.create(registerDto);
     const payload = { username: user.username, sub: user._id, role: user.role };
     return {
@@ -26,7 +38,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     if (user.banned) {
-      throw new UnauthorizedException(`Account banned: ${user.bannedReason || 'Contact support'}`);
+      throw new ForbiddenException(`Compte banni: ${user.bannedReason || 'Contactez le support'}`);
     }
     const isPasswordValid = await this.usersService.validatePassword(loginDto.password, user.password);
     if (!isPasswordValid) {
