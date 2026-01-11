@@ -3,12 +3,14 @@
 ## 📋 Vue d'ensemble
 
 Les tests sont organisés en deux catégories :
+
 - **Tests unitaires** (`test/unit/`) : Testent les services et contrôleurs avec des mocks
 - **Tests e2e** (`test/e2e/`) : Testent l'application complète avec un serveur réel
 
 ## 🚀 Commandes de test
 
 ### Depuis la racine du projet
+
 ```bash
 # Tous les tests (unitaires + e2e)
 npm test:all
@@ -28,6 +30,7 @@ npm run test:e2e:watch
 ```
 
 ### Depuis le dossier `apps/api/`
+
 ```bash
 # Tous les tests
 npm run test
@@ -53,7 +56,7 @@ npm run test:all
 
 ## 📂 Structure des tests
 
-```
+```text
 test/
 ├── unit/                          # Tests unitaires avec mocks
 │   ├── auth/
@@ -83,6 +86,7 @@ test/
 ## ✅ Cas de test couverts
 
 ### Authentication
+
 - ✅ Enregistrement d'un nouvel utilisateur
 - ✅ Connexion avec identifiants valides
 - ✅ Rejet avec email invalide
@@ -91,6 +95,7 @@ test/
 - ✅ Rafraîchissement des tokens
 
 ### Channels
+
 - ✅ Création de salon
 - ✅ Lister les salons
 - ✅ Récupérer les détails du salon
@@ -100,6 +105,7 @@ test/
 - ✅ Contrôle d'accès et autorisation
 
 ### Messages
+
 - ✅ Créer un message
 - ✅ Lister les messages d'un salon
 - ✅ Modifier son propre message
@@ -108,6 +114,7 @@ test/
 - ✅ Rejet de suppression par un utilisateur non-auteur
 
 ### Users
+
 - ✅ Créer un utilisateur
 - ✅ Récupérer un utilisateur par ID
 - ✅ Récupérer un utilisateur par email
@@ -132,11 +139,13 @@ npm run test:coverage
 ## 🐛 Débogage
 
 ### Mode debug pour tests unitaires
+
 ```bash
 npm run test:debug
 ```
 
 ### Mode watch pour itération rapide
+
 ```bash
 # Relancer les tests unitaires automatiquement
 npm run test:unit:watch
@@ -148,6 +157,7 @@ npm run test:e2e:watch
 ## 📊 Couverture
 
 La couverture des tests est générée dans `coverage/` avec deux rapports :
+
 - `coverage/unit/` : Couverture des tests unitaires
 - `coverage/e2e/` : Couverture des tests e2e
 
