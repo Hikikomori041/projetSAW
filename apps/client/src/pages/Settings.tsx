@@ -31,6 +31,13 @@ const Settings = () => {
       return;
     }
     const decoded: DecodedToken = jwtDecode(token);
+    
+    // Les admins ne peuvent pas accéder aux paramètres
+    if (decoded.role === 'admin') {
+      navigate('/channels');
+      return;
+    }
+    
     setUserId(decoded.sub);
     fetchProfile(decoded.sub, token);
   }, [navigate]);
