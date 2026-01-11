@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '../../../src/auth/auth.service';
 import { UsersService } from '../../../src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException, ConflictException, ForbiddenException } from '@nestjs/common';
 
 describe('AuthService (Unit Tests)', () => {
   let service: AuthService;
@@ -20,6 +20,7 @@ describe('AuthService (Unit Tests)', () => {
 
   const mockUsersService = {
     findByEmail: jest.fn(),
+    findByUsername: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
     validatePassword: jest.fn(),
@@ -56,13 +57,44 @@ describe('AuthService (Unit Tests)', () => {
         password: 'password123',
       };
 
+      mockUsersService.findByEmail.mockResolvedValue(null);
+      mockUsersService.findByUsername.mockResolvedValue(null);
       mockUsersService.create.mockResolvedValue(mockUser);
       mockJwtService.sign.mockReturnValue('access_token');
 
       const result = await service.register(registerDto);
 
       expect(result).toHaveProperty('access_token');
+      expect(usersService.findByEmail).toHaveBeenCalledWith(registerDto.email);
+      expect(usersService.findByUsername).toHaveBeenCalledWith(registerDto.username);
       expect(usersService.create).toHaveBeenCalledWith(registerDto);
+    });
+    
+    it('should throw ConflictException if email already exists', async () => {
+      const registerDto = {
+        email: 'existing@example.com',
+        username: 'newuser',
+        password: 'password123',
+      };
+
+      mockUsersService.findByEmail.mockResolvedValue(mockUser);
+
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toThrow('Email déjà utilisé');
+    });
+    
+    it('should throw ConflictException if username already exists', async () => {
+      const registerDto = {
+        email: 'newuser@example.com',
+        username: 'existinguser',
+        password: 'password123',
+      };
+
+      mockUsersService.findByEmail.mockResolvedValue(null);
+      mockUsersService.findByUsername.mockResolvedValue(mockUser);
+
+      await expect(service.register(registerDto)).rejects.toThrow(ConflictException);
+      await expect(service.register(registerDto)).rejects.toThrow('Nom d\'utilisateur déjà utilisé');
     });
   });
 
@@ -103,7 +135,7 @@ describe('AuthService (Unit Tests)', () => {
 
       mockUsersService.findByEmail.mockResolvedValue(bannedUser);
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
+      await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw error for invalid password', async () => {
