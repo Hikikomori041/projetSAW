@@ -9,7 +9,6 @@ interface DecodedToken {
 
 const Home = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'home' | 'stats'>('home');
   const [stats, setStats] = useState<{ users: number; channels: number; totalMessages?: number; avgMessagesPerUser?: number } | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
 
@@ -43,97 +42,113 @@ const Home = () => {
       }
     };
 
-    if (tab === 'stats') fetchStats();
-  }, [tab]);
+    fetchStats();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center p-8">
-      <div className="max-w-4xl mx-auto text-center text-white">
-        <h1 className="text-6xl font-bold mb-6 animate-pulse flex items-center justify-center gap-4">
-          Bienvenue sur Drocsid !
-          <div className="badge badge-primary badge-lg">Bêta</div>
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+      {/* Section principale */}
+      <div className="min-h-screen flex items-center justify-center p-8">
+        <div className="max-w-4xl mx-auto text-center text-white">
+          <h1 className="text-6xl font-bold mb-6 animate-pulse flex items-center justify-center gap-4">
+            Bienvenue sur Drocsid !
+            <div className="badge badge-primary badge-lg">Bêta</div>
+          </h1>
 
-        <div className="flex justify-center mb-6">
-          <button onClick={() => setTab('home')} className={`btn ${tab === 'home' ? 'btn-primary' : 'btn-ghost'} mr-2`}>Accueil</button>
-          <button onClick={() => setTab('stats')} className={`btn ${tab === 'stats' ? 'btn-primary' : 'btn-ghost'}`}>Stats</button>
-        </div>
-
-        {tab === 'home' ? (
-          <>
-            <p className="text-xl mb-8 opacity-90">
-              Rejoignez des communautés, discutez en temps réel et créez vos propres salons de discussion.
-            </p>
-            <div className="flex justify-center space-x-6 mb-12">
-              <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
-                <div className="card-body items-center text-center">
-                  <div className="text-4xl mb-4">💬</div>
-                  <h3 className="card-title text-white">Chat en Temps Réel</h3>
-                  <p className="text-gray-200 ">Discutez instantanément avec vos amis et communautés.</p>
-                </div>
-              </div>
-              <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
-                <div className="card-body items-center text-center">
-                  <div className="text-4xl mb-4">🏠</div>
-                  <h3 className="card-title text-white">Salons Personnalisés</h3>
-                  <p className="text-gray-200">Créez et gérez vos propres espaces de discussion.</p>
-                </div>
-              </div>
-              <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
-                <div className="card-body items-center text-center">
-                  <div className="text-4xl mb-4">🔒</div>
-                  <h3 className="card-title text-white">Sécurité</h3>
-                  <p className="text-gray-200">Authentification sécurisée et modération avancée.</p>
-                </div>
+          <p className="text-xl mb-8 opacity-90">
+            Rejoignez des communautés, discutez en temps réel et créez vos propres salons de discussion.
+          </p>
+          
+          <div className="flex justify-center space-x-6 mb-12">
+            <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="card-body items-center text-center">
+                <div className="text-4xl mb-4">💬</div>
+                <h3 className="card-title text-white">Chat en Temps Réel</h3>
+                <p className="text-gray-200">Discutez instantanément avec vos amis et communautés.</p>
               </div>
             </div>
-            <div className="space-x-4">
-              <Link
-                to="/register"
-                className="btn btn-primary btn-lg"
-              >
-                S'inscrire
-              </Link>
-              <Link
-                to="/login"
-                className="btn btn-outline btn-primary btn-lg"
-              >
-                Se connecter
-              </Link>
+            <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="card-body items-center text-center">
+                <div className="text-4xl mb-4">🏠</div>
+                <h3 className="card-title text-white">Salons Personnalisés</h3>
+                <p className="text-gray-200">Créez et gérez vos propres espaces de discussion.</p>
+              </div>
             </div>
-          </>
-        ) : (
-          <div className="space-y-6">
-            <p className="text-lg opacity-90">Statistiques publiques du service (visiteurs)</p>
-            <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto">
-              <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20 p-6 min-h-28 flex flex-col justify-center">
-                <div className="text-3xl">🖥️</div>
-                <div className="mt-2 text-2xl">
-                  {loadingStats ? '...' : stats ? stats.channels : '—'}
-                </div>
-                <div className="text-sm opacity-80">Serveurs / Salons</div>
-              </div>
-              <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20 p-6 min-h-28 flex flex-col justify-center">
-                <div className="text-3xl">👥</div>
-                <div className="mt-2 text-2xl">
-                  {loadingStats ? '...' : stats ? stats.users : '—'}
-                </div>
-                <div className="text-sm opacity-80">Utilisateurs</div>
-              </div>
-              <div className="col-span-2">
-                <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20 p-6 min-h-28 flex items-center justify-center">
-                  <div className="w-full text-center">
-                    <div className="text-3xl">✉️</div>
-                    <div className="mt-2 text-2xl">
-                      {loadingStats ? '...' : stats ? (stats.avgMessagesPerUser ?? 0) : '—'}
-                    </div>
-                    <div className="text-sm opacity-80">Moy. messages / utilisateur</div>
-                  </div>
-                </div>
+            <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
+              <div className="card-body items-center text-center">
+                <div className="text-4xl mb-4">🔒</div>
+                <h3 className="card-title text-white">Sécurité</h3>
+                <p className="text-gray-200">Authentification sécurisée et modération avancée.</p>
               </div>
             </div>
           </div>
-        )}
+          
+          <div className="space-x-4">
+            <Link
+              to="/register"
+              className="btn btn-primary btn-lg"
+            >
+              Créer un compte
+            </Link>
+            <Link
+              to="/login"
+              className="btn btn-outline btn-primary btn-lg"
+            >
+              Se connecter
+            </Link>
+          </div>
+
+          {/* Indicateur de scroll */}
+          <div className="mt-16 animate-bounce">
+            <svg className="w-8 h-8 mx-auto text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Barre de séparation avec effet de dégradé */}
+      <div className="relative h-32">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-3/4 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+        </div>
+      </div>
+
+      {/* Section statistiques */}
+      <div className="min-h-screen flex items-center justify-center p-8 pb-24">
+        <div className="max-w-4xl mx-auto text-center text-white">
+          <h2 className="text-5xl font-bold mb-4">Statistiques de la plateforme</h2>
+          <p className="text-lg opacity-90 mb-12">Découvrez notre communauté grandissante</p>
+          
+          <div className="grid grid-cols-2 gap-8 max-w-2xl mx-auto">
+            <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20 p-8 transform hover:scale-105 transition-transform">
+              <div className="text-5xl mb-4">🖥️</div>
+              <div className="text-4xl font-bold mb-2">
+                {loadingStats ? '...' : stats ? stats.channels : '—'}
+              </div>
+              <div className="text-lg opacity-80">Salons actifs</div>
+            </div>
+            
+            <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20 p-8 transform hover:scale-105 transition-transform">
+              <div className="text-5xl mb-4">👥</div>
+              <div className="text-4xl font-bold mb-2">
+                {loadingStats ? '...' : stats ? stats.users : '—'}
+              </div>
+              <div className="text-lg opacity-80">Utilisateurs</div>
+            </div>
+            
+            <div className="col-span-2">
+              <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20 p-8 transform hover:scale-105 transition-transform">
+                <div className="text-5xl mb-4">✉️</div>
+                <div className="text-4xl font-bold mb-2">
+                  {loadingStats ? '...' : stats ? (stats.avgMessagesPerUser ?? 0).toFixed(1) : '—'}
+                </div>
+                <div className="text-lg opacity-80">Messages par utilisateur en moyenne</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
