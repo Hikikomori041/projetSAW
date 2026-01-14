@@ -366,7 +366,7 @@ const Channels = () => {
       )}
 
       {/* Sidebar */}
-      <div className="w-80 bg-gray-800 flex flex-col h-full">
+      <div className="w-120 bg-gray-800 flex flex-col h-full">
         <div className="p-4 border-b border-gray-700">
           <h2 className="text-lg font-semibold text-gray-200">
             Salons {userRole === 'admin' && '(Admin)'}
