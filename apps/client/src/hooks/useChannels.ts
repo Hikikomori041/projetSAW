@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 import type { Channel } from '../types';
 
 export const useChannels = () => {
@@ -8,7 +9,7 @@ export const useChannels = () => {
 
   const fetchChannels = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/channels', {
+      const response = await axios.get(`${API_URL}/channels`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setChannels(response.data);
@@ -21,7 +22,7 @@ export const useChannels = () => {
 
   const createChannel = async (name: string) => {
     try {
-      await axios.post('http://localhost:3000/channels', { name }, {
+      await axios.post(`${API_URL}/channels`, { name }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       await fetchChannels();
@@ -33,7 +34,7 @@ export const useChannels = () => {
 
   const deleteChannel = async (channelId: string, reason: string) => {
     try {
-      await axios.delete(`http://localhost:3000/channels/${channelId}`, {
+      await axios.delete(`${API_URL}/channels/${channelId}`, {
         data: { reason },
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
@@ -47,7 +48,7 @@ export const useChannels = () => {
 
   const joinChannel = async (channelId: string) => {
     try {
-      await axios.post(`http://localhost:3000/channels/${channelId}/join`, {}, {
+      await axios.post(`${API_URL}/channels/${channelId}/join`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       const updatedChannels = await fetchChannels();
@@ -60,7 +61,7 @@ export const useChannels = () => {
 
   const leaveChannel = async (channelId: string) => {
     try {
-      await axios.post(`http://localhost:3000/channels/${channelId}/leave`, {}, {
+      await axios.post(`${API_URL}/channels/${channelId}/leave`, {}, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       await fetchChannels();

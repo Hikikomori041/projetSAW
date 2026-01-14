@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import io, { Socket } from 'socket.io-client';
 import type { Message } from '../types';
+import { API_URL } from '../config/api';
 
 export const useSocket = (token: string | null) => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -8,8 +9,9 @@ export const useSocket = (token: string | null) => {
   useEffect(() => {
     if (!token) return;
 
-    const newSocket = io('http://localhost:3000', {
+    const newSocket = io(API_URL, {
       auth: { token },
+      transports: ['websocket', 'polling'],
     });
     setSocket(newSocket);
 

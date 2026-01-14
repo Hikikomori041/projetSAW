@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import { API_URL } from '../config/api';
 
 interface DecodedToken {
   username: string;
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3000/admin/stats', {
+      const response = await axios.get(`${API_URL}/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStats(response.data);

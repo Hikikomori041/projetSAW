@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 import type { DecodedToken } from '../types';
@@ -29,7 +30,7 @@ export const useAuth = () => {
 
   const fetchCurrentUser = async (id: string, authToken: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/users/${id}`, {
+      const response = await axios.get(`${API_URL}/users/${id}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setUsername(response.data.username);

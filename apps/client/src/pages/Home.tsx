@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 
 interface DecodedToken {
   exp: number;
@@ -33,7 +34,7 @@ const Home = () => {
     const fetchStats = async () => {
       setLoadingStats(true);
       try {
-        const res = await axios.get('http://localhost:3000/stats');
+        const res = await axios.get(`${API_URL}/stats`);
         if (res.data && res.data.data) setStats(res.data.data);
       } catch (err) {
         console.error('Failed to load stats', err);

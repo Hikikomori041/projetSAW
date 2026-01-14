@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 import type { Message } from '../types';
 
 export const useMessages = () => {
@@ -7,7 +8,7 @@ export const useMessages = () => {
 
   const fetchMessages = async (channelId: string) => {
     try {
-      const response = await axios.get(`http://localhost:3000/messages/${channelId}`, {
+      const response = await axios.get(`${API_URL}/messages/${channelId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       setMessages(response.data);
@@ -18,7 +19,7 @@ export const useMessages = () => {
 
   const sendMessage = async (content: string, channelId: string) => {
     try {
-      await axios.post('http://localhost:3000/messages', {
+      await axios.post(`${API_URL}/messages`, {
         content,
         channelId,
       }, {
@@ -31,7 +32,7 @@ export const useMessages = () => {
 
   const updateMessage = async (messageId: string, content: string) => {
     try {
-      await axios.patch(`http://localhost:3000/messages/${messageId}`, 
+      await axios.patch(`${API_URL}/messages/${messageId}`, 
         { content },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
@@ -43,7 +44,7 @@ export const useMessages = () => {
 
   const deleteMessage = async (messageId: string, reason?: string) => {
     try {
-      await axios.delete(`http://localhost:3000/messages/${messageId}`, {
+      await axios.delete(`${API_URL}/messages/${messageId}`, {
         data: reason ? { reason } : undefined,
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });

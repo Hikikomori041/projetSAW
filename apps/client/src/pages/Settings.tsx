@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import Toast from '../components/Toast';
+import { API_URL } from '../config/api';
 
 interface DecodedToken {
   sub: string;
@@ -44,7 +45,7 @@ const Settings = () => {
 
   const fetchProfile = async (id: string, token: string) => {
     try {
-      const res = await axios.get(`http://localhost:3000/users/${id}`, {
+      const res = await axios.get(`${API_URL}/users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsername(res.data.username);
@@ -92,7 +93,7 @@ const Settings = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.patch(`http://localhost:3000/users/${userId}`, {
+      await axios.patch(`${API_URL}/users/${userId}`, {
         password: newPassword,
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -113,7 +114,7 @@ const Settings = () => {
     setError('');
     setSuccess('');
     try {
-      await axios.delete(`http://localhost:3000/users/${userId}`, {
+      await axios.delete(`${API_URL}/users/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       localStorage.removeItem('token');

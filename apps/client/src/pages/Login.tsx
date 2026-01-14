@@ -19,7 +19,7 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', { email, password });
+      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       localStorage.setItem('token', response.data.access_token);
       
       // Décoder le token pour vérifier le rôle

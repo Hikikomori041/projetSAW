@@ -5,6 +5,7 @@ import { useChannels } from '../hooks/useChannels';
 import { useMessages } from '../hooks/useMessages';
 import { useSocket } from '../hooks/useSocket';
 import { copyInviteLink } from '../utils/helpers';
+import { API_URL } from '../config/api';
 import type { DeleteModalState, ContextMenuState, MessageContextMenuState } from '../types';
 import JoinChannelModal from '../components/channels/JoinChannelModal';
 import AdminActionModal from '../components/channels/AdminActionModal';
@@ -309,7 +310,7 @@ const Channels = () => {
       } else if (deleteModal.type === 'channel') {
         await deleteChannel(deleteModal.id, deleteReason);
       } else if (deleteModal.type === 'ban') {
-        await axios.post(`http://localhost:3000/users/${deleteModal.id}/ban`, 
+        await axios.post(`${API_URL}/users/${deleteModal.id}/ban`, 
           { reason: deleteReason },
           { headers: { Authorization: `Bearer ${token}` } }
         );
