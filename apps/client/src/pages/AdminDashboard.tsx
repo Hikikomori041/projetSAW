@@ -118,17 +118,47 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="bg-gray-800 border-b border-gray-700 p-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Dashboard Administrateur</h1>
+          <h1 className="text-2xl font-bold text-white">Administration</h1>
           <button
             onClick={handleLogout}
             className="btn btn-sm btn-ghost text-gray-300 hover:text-white"
           >
             Déconnexion
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
           </button>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* Summary Stats */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <div className="text-gray-400 text-sm text-center">Utilisateurs</div>
+              <div className="text-3xl font-bold text-white text-center">{stats.users.length}</div>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <div className="text-gray-400 text-sm text-center">Utilisateurs bannis</div>
+              <div className="text-3xl font-bold text-red-500 text-center">
+                {stats.users.filter((u) => u.banned).length}
+              </div>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <div className="text-gray-400 text-sm text-center">Salons</div>
+              <div className="text-3xl font-bold text-white text-center">{stats.channels.length}</div>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-lg">
+              <div className="text-gray-400 text-sm text-center">Messages envoyés</div>
+              <div className="text-3xl font-bold text-white text-center">
+                {stats.channels.reduce((sum, ch) => sum + ch.messageCount, 0)}
+              </div>
+            </div>
+          </div>
+        )}
+
+
         {/* Tabs */}
         <div className="tabs tabs-boxed bg-gray-800 mb-6 p-2">
           <button
@@ -224,32 +254,6 @@ const AdminDashboard = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        )}
-
-        {/* Summary Stats */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Total Utilisateurs</div>
-              <div className="text-3xl font-bold text-white">{stats.users.length}</div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Utilisateurs Bannis</div>
-              <div className="text-3xl font-bold text-red-500">
-                {stats.users.filter((u) => u.banned).length}
-              </div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Total Salons</div>
-              <div className="text-3xl font-bold text-white">{stats.channels.length}</div>
-            </div>
-            <div className="bg-gray-800 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm">Total Messages</div>
-              <div className="text-3xl font-bold text-white">
-                {stats.channels.reduce((sum, ch) => sum + ch.messageCount, 0)}
-              </div>
             </div>
           </div>
         )}
