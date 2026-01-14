@@ -21,7 +21,10 @@ const MessageContextMenu = ({ messageContextMenu, messages, userId, isAdmin, onE
   return (
     <div
       className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 z-50"
-      style={{ top: messageContextMenu.y, left: messageContextMenu.x }}
+      style={{
+        top: Math.min(messageContextMenu.y, window.innerHeight - 200),
+        left: Math.min(messageContextMenu.x, window.innerWidth - 250),
+      }}
       onClick={(e) => e.stopPropagation()}
     >
       {isOwnMessage && !isBanned && !isMessageDeleted && (
