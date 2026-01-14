@@ -43,4 +43,39 @@ export class MessagesService {
   async remove(id: string): Promise<Message | null> {
     return this.messageModel.findByIdAndDelete(id).exec();
   }
+
+  async countByUser(userId: string): Promise<number> {
+    return this.messageModel.countDocuments({ author: userId }).exec();
+  }
+
+  async countByChannel(channelId: string): Promise<number> {
+    return this.messageModel.countDocuments({ channel: channelId }).exec();
+  }
+
+  async countBannedUsers(): Promise<any[]> {
+    return this.messageModel.aggregate([
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'author',
+          foreignField: '_id',
+          as: 'userInfo'
+        }
+      },
+      { $unwind: '$userInfo' },
+      { $match: { 'userInfo.banned': true } },
+      {
+        $group: {
+          _id: '$channel',
+          bannedUsersCount: { $addToSet: '$author' }
+        }
+      },
+      {
+        $project: {
+          channelId: '$_id',
+          bannedUsersCount: { $size: '$bannedUsersCount' }
+        }
+      }
+    ]).exec();
+  }
 }

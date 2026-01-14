@@ -69,4 +69,12 @@ export class ChannelsController {
     
     return this.channelsService.remove(id);
   }
+
+  @Get('admin/stats')
+  async getAdminStats(@Request() req) {
+    if (req.user.role !== 'admin') {
+      throw new Error('Admin access required');
+    }
+    return this.channelsService.getAdminStats();
+  }
 }

@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ChannelsModule } from './channels/channels.module';
 import { MessagesModule } from './messages/messages.module';
 import { EmailModule } from './email/email.module';
+import { AdminModule } from './admin/admin.module';
 import { StatsModule } from './stats/stats.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { StatsModule } from './stats/stats.module';
     ChannelsModule,
     MessagesModule,
     EmailModule,
+    AdminModule,
     StatsModule,
   ],
   controllers: [AppController],

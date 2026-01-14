@@ -89,17 +89,21 @@ const Register = () => {
               type="submit" 
               className="btn btn-success w-full"
             >
-              S'inscrire
+              Créer mon compte
             </button>
           </form>
           
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               Déjà un compte ?{' '}
-              <a href="/" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                Retour à l'accueil
+              <a href="/login" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                Se connecter
               </a>
             </p>
+            <br/>
+            <a href="/" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+              Retour à l'accueil
+            </a>
           </div>
         </div>
       </div>

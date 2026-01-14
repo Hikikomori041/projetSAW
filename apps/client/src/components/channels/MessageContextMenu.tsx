@@ -22,8 +22,8 @@ const MessageContextMenu = ({ messageContextMenu, messages, userId, isAdmin, onE
     <div
       className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 z-50"
       style={{
-        top: Math.min(messageContextMenu.y, window.innerHeight - (window.innerHeight/9)),
-        left: Math.min(messageContextMenu.x, window.innerWidth - (window.innerWidth/9)),
+        top: Math.min(messageContextMenu.y, window.innerHeight - (window.innerHeight/9 + 12)),
+        left: Math.min(messageContextMenu.x, window.innerWidth - (window.innerWidth/9 + 12)),
       }}
       onClick={(e) => e.stopPropagation()}
     >
