@@ -102,4 +102,12 @@ export class ChannelsService implements OnModuleInit {
     await channel.save();
     return channel.populate('createdBy', 'username');
   }
+
+  async getAdminStats() {
+    const channels = await this.channelModel
+      .find()
+      .populate('createdBy', 'username')
+      .exec();
+    return channels;
+  }
 }

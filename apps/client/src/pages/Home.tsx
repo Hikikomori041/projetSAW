@@ -64,7 +64,7 @@ const Home = () => {
             to="/register"
             className="btn btn-primary btn-lg"
           >
-            S'inscrire
+            Créer un compte
           </Link>
           <Link
             to="/login"

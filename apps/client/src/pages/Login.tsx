@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import Toast from '../components/Toast';
+
+interface DecodedToken {
+  username: string;
+  role: string;
+  sub: string;
+}
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,7 +21,19 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:3000/auth/login', { email, password });
       localStorage.setItem('token', response.data.access_token);
-      navigate('/');
+      
+      // Décoder le token pour vérifier le rôle
+      try {
+        const decoded = jwtDecode<DecodedToken>(response.data.access_token);
+        if (decoded.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/channels');
+        }
+      } catch {
+        // Si le décodage échoue, rediriger vers channels par défaut
+        navigate('/channels');
+      }
     } catch (error: any) {
       if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         setToastMessage('Connexion au serveur impossible');
@@ -81,10 +100,14 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               Pas encore de compte ?{' '}
-              <a href="/" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
-                Retour à l'accueil
+              <a href="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                Créer un compte
               </a>
             </p>
+            <br/>
+            <a href="/" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+              Retour à l'accueil
+            </a>
           </div>
         </div>
       </div>

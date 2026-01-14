@@ -78,4 +78,13 @@ export class UsersController {
     }
     return { banned: true };
   }
+
+  @Get('admin/stats')
+  @UseGuards(JwtAuthGuard)
+  async getAdminStats(@Request() req) {
+    if (req.user.role !== 'admin') {
+      throw new ForbiddenException('Admin access required');
+    }
+    return this.usersService.getAdminStats();
+  }
 }

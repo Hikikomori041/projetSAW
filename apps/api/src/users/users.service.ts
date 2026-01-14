@@ -68,4 +68,9 @@ export class UsersService {
   async validatePassword(password: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(password, hashedPassword);
   }
+
+  async getAdminStats() {
+    const users = await this.userModel.find().exec();
+    return users;
+  }
 }
