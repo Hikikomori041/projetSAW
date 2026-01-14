@@ -63,14 +63,14 @@ const Home = () => {
             <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
               <div className="card-body items-center text-center">
                 <div className="text-4xl mb-4">💬</div>
-                <h3 className="card-title text-white">Chat en Temps Réel</h3>
+                <h3 className="card-title text-white">Chat en temps réel</h3>
                 <p className="text-gray-200">Discutez instantanément avec vos amis et communautés.</p>
               </div>
             </div>
             <div className="card bg-white bg-opacity-20 backdrop-blur-sm border border-white border-opacity-20">
               <div className="card-body items-center text-center">
                 <div className="text-4xl mb-4">🏠</div>
-                <h3 className="card-title text-white">Salons Personnalisés</h3>
+                <h3 className="card-title text-white">Salons personnalisés</h3>
                 <p className="text-gray-200">Créez et gérez vos propres espaces de discussion.</p>
               </div>
             </div>
