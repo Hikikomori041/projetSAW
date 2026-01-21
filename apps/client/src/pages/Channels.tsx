@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useChannels } from '../hooks/useChannels';
 import { useMessages } from '../hooks/useMessages';
@@ -22,6 +23,7 @@ import MessageInput from '../components/channels/MessageInput';
 import Toast from '../components/Toast';
 
 const Channels = () => {
+  const navigate = useNavigate();
   const { userRole, username, userId, token, logout } = useAuth();
   const { channels, selectedChannel, setSelectedChannel, fetchChannels, createChannel, deleteChannel, joinChannel, leaveChannel } = useChannels();
   const { messages, setMessages, fetchMessages, sendMessage, updateMessage, deleteMessage } = useMessages();
@@ -369,9 +371,22 @@ const Channels = () => {
       {/* Sidebar */}
       <div className="w-120 bg-gray-800 flex flex-col h-full">
         <div className="p-4 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-200">
-            Salons {userRole === 'admin' && '(Admin)'}
-          </h2>
+          
+          {userRole !== 'admin' && (
+            <h2 className="text-lg font-semibold text-gray-200">
+              Mes salons
+            </h2>
+          )}
+          
+          {userRole === 'admin' && (
+            <button
+              onClick={() => navigate('/admin/dashboard')}
+              className="w-full text-left px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200"
+            >
+              <span className="text-lg font-semibold text-white">← Retour à l'administration</span>
+            </button>
+          )}
+
         </div>
         
         <ChannelList

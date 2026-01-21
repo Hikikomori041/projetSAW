@@ -11,7 +11,7 @@ const MessageInput = ({ channelName, newMessage, onMessageChange, onSendMessage 
       <div className="flex space-x-4">
         <input
           type="text"
-          placeholder={`Message #${channelName}...`}
+          placeholder={`Envoyer un message dans #${channelName}...`}
           value={newMessage}
           onChange={(e) => onMessageChange(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}

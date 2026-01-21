@@ -72,9 +72,15 @@ const Settings = () => {
       });
       setUsername(newUsername.trim());
       setSuccess('Pseudo mis à jour');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to update username', err);
-      setError('Erreur lors de la mise à jour du pseudo');
+      if (err.response?.status === 409) {
+        setError('Ce pseudo est déjà utilisé');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Erreur lors de la mise à jour du pseudo');
+      }
     } finally {
       setLoading(false);
     }

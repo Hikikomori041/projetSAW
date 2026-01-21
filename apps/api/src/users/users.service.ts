@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -41,6 +41,11 @@ export class UsersService {
     // On limite les champs modifiables pour éviter qu'un utilisateur ne s'auto-promouvoie admin/banned
     const payload: Partial<User> = {};
     if (updateUserDto.username) {
+      // Vérifier si le username est déjà pris par un autre utilisateur
+      const existingUser = await this.userModel.findOne({ username: updateUserDto.username }).exec();
+      if (existingUser && existingUser._id.toString() !== id) {
+        throw new ConflictException('Ce nom d\'utilisateur est déjà utilisé');
+      }
       payload.username = updateUserDto.username;
     }
     if (updateUserDto.password) {
