@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Toast from '../components/Toast';
+import { API_URL } from '../config/api';
 
 const Register = () => {
   const [username, setUsername] = useState('');
