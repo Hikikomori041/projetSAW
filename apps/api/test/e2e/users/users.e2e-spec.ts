@@ -3,6 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../../../src/app.module';
+import { cleanDatabase } from '../../helpers/database.helper';
 
 describe('Users E2E Tests', () => {
   let app: INestApplication<App>;
@@ -34,11 +35,14 @@ describe('Users E2E Tests', () => {
       Buffer.from(accessToken.split('.')[1], 'base64').toString()
     );
     userId = payload.sub;
-  });
+  }, 10000); // Augmenter le timeout à 10 secondes
 
   afterEach(async () => {
-    await app.close();
-  });
+    if (app) {
+      await cleanDatabase(app);
+      await app.close();
+    }
+  }, 10000); // Augmenter le timeout à 10 secondes
 
   describe('PATCH /users/:id (update username)', () => {
     it('should update username successfully', () => {

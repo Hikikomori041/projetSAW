@@ -3,6 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../../../src/app.module';
+import { cleanDatabase } from '../../helpers/database.helper';
 
 describe('Authentication E2E Tests', () => {
   let app: INestApplication<App>;
@@ -17,11 +18,14 @@ describe('Authentication E2E Tests', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
-  });
+  }, 10000);
 
   afterEach(async () => {
-    await app.close();
-  });
+    if (app) {
+      await cleanDatabase(app);
+      await app.close();
+    }
+  }, 10000);
 
   describe('POST /auth/register', () => {
     it('should register a new user', () => {
