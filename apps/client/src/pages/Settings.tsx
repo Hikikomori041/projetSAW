@@ -61,6 +61,10 @@ const Settings = () => {
       setError('Le pseudo ne peut pas être vide');
       return;
     }
+    if (newUsername.trim().length > 35) {
+      setError('Le pseudo ne peut pas dépasser 35 caractères');
+      return;
+    }
     setLoading(true);
     setError('');
     setSuccess('');

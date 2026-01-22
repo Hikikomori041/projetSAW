@@ -13,6 +13,13 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation côté client
+    if (username.length > 35) {
+      setToastMessage('Le pseudo ne peut pas dépasser 35 caractères');
+      return;
+    }
+    
     try {
       const response = await axios.post(`${API_URL}/auth/register`, { username, email, password });
       localStorage.setItem('token', response.data.access_token);
@@ -25,7 +32,9 @@ const Register = () => {
         const message = error.response?.data?.message || 'Email ou nom d\'utilisateur déjà utilisé';
         setToastMessage(message);
       } else if (error.response?.status === 400) {
-        setToastMessage('Données invalides');
+        // Erreur de validation - afficher le message spécifique
+        const message = error.response?.data?.message || 'Données invalides';
+        setToastMessage(Array.isArray(message) ? message[0] : message);
       } else if (error.response?.status >= 500) {
         setToastMessage('Erreur serveur, réessayez plus tard');
       } else {
