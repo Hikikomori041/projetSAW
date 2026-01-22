@@ -5,13 +5,13 @@ import { useAuth } from '../hooks/useAuth';
 import { useChannels } from '../hooks/useChannels';
 import { useMessages } from '../hooks/useMessages';
 import { useSocket } from '../hooks/useSocket';
-import { copyInviteLink } from '../utils/helpers';
 import { API_URL } from '../config/api';
 import type { DeleteModalState, ContextMenuState, MessageContextMenuState } from '../types';
 import JoinChannelModal from '../components/channels/JoinChannelModal';
 import AdminActionModal from '../components/channels/AdminActionModal';
 import LeaveChannelModal from '../components/channels/LeaveChannelModal';
 import DeleteOwnChannelModal from '../components/channels/DeleteOwnChannelModal';
+import InviteLinkModal from '../components/channels/InviteLinkModal';
 import ChannelContextMenu from '../components/channels/ChannelContextMenu';
 import MessageContextMenu from '../components/channels/MessageContextMenu';
 import UserPanel from '../components/channels/UserPanel';
@@ -41,6 +41,7 @@ const Channels = () => {
   const [deleteReason, setDeleteReason] = useState<string>('');
   const [leaveChannelModal, setLeaveChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
   const [deleteOwnChannelModal, setDeleteOwnChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
+  const [inviteLinkModal, setInviteLinkModal] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch channels on mount
@@ -171,11 +172,7 @@ const Channels = () => {
   };
 
   const handleCopyInvite = (channelId: string) => {
-    copyInviteLink(
-      channelId,
-      () => setToastMessage('Lien d\'invitation copié !'),
-      () => setToastMessage('Erreur lors de la copie')
-    );
+    setInviteLinkModal(channelId);
     setContextMenu(null);
   };
 
@@ -365,6 +362,14 @@ const Channels = () => {
           channelName={deleteOwnChannelModal.channelName}
           onConfirm={handleDeleteOwnChannel}
           onCancel={() => setDeleteOwnChannelModal(null)}
+        />
+      )}
+
+      {/* Invite Link Modal */}
+      {inviteLinkModal && (
+        <InviteLinkModal
+          channelId={inviteLinkModal}
+          onClose={() => setInviteLinkModal(null)}
         />
       )}
 
