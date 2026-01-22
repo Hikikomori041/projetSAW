@@ -6,11 +6,12 @@ interface ChannelContextMenuProps {
   userId: string;
   isAdmin: boolean;
   onCopyInvite: (channelId: string) => void;
+  onRename: (channelId: string) => void;
   onLeave: (channelId: string) => void;
   onDelete: (channelId: string) => void;
 }
 
-const ChannelContextMenu = ({ contextMenu, channel, userId, isAdmin, onCopyInvite, onLeave, onDelete }: ChannelContextMenuProps) => {
+const ChannelContextMenu = ({ contextMenu, channel, userId, isAdmin, onCopyInvite, onRename, onLeave, onDelete }: ChannelContextMenuProps) => {
   const isOwner = channel?.createdBy?._id === userId;
 
   return (
@@ -26,6 +27,15 @@ const ChannelContextMenu = ({ contextMenu, channel, userId, isAdmin, onCopyInvit
         <span>🔗</span>
         <span>Copier le lien d'invitation</span>
       </button>
+      {isOwner && (
+        <button
+          className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors flex items-center gap-2"
+          onClick={() => onRename(contextMenu.channelId)}
+        >
+          <span>✏️</span>
+          <span>Changer le nom du salon</span>
+        </button>
+      )}
       {isOwner ? (
         <button
           className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-red-400"

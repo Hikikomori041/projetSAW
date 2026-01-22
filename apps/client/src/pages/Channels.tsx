@@ -12,6 +12,7 @@ import AdminActionModal from '../components/channels/AdminActionModal';
 import LeaveChannelModal from '../components/channels/LeaveChannelModal';
 import DeleteOwnChannelModal from '../components/channels/DeleteOwnChannelModal';
 import InviteLinkModal from '../components/channels/InviteLinkModal';
+import RenameChannelModal from '../components/channels/RenameChannelModal';
 import ChannelContextMenu from '../components/channels/ChannelContextMenu';
 import MessageContextMenu from '../components/channels/MessageContextMenu';
 import UserPanel from '../components/channels/UserPanel';
@@ -42,6 +43,7 @@ const Channels = () => {
   const [leaveChannelModal, setLeaveChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
   const [deleteOwnChannelModal, setDeleteOwnChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
   const [inviteLinkModal, setInviteLinkModal] = useState<string | null>(null);
+  const [renameChannelModal, setRenameChannelModal] = useState<{ channelId: string; channelName: string } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Fetch channels on mount
@@ -174,6 +176,33 @@ const Channels = () => {
   const handleCopyInvite = (channelId: string) => {
     setInviteLinkModal(channelId);
     setContextMenu(null);
+  };
+
+  const handleRenameChannelRequest = (channelId: string) => {
+    const channel = channels.find(c => c._id === channelId);
+    if (channel) {
+      setRenameChannelModal({
+        channelId,
+        channelName: channel.name
+      });
+    }
+    setContextMenu(null);
+  };
+
+  const handleRenameChannel = async (newName: string) => {
+    if (!renameChannelModal) return;
+    try {
+      await axios.patch(
+        `${API_URL}/channels/${renameChannelModal.channelId}`,
+        { name: newName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchChannels();
+      setToastMessage('Salon renommé avec succès');
+      setRenameChannelModal(null);
+    } catch (error) {
+      setToastMessage('Erreur lors du renommage du salon');
+    }
   };
 
   const handleDeleteChannelRequest = (channelId: string) => {
@@ -373,6 +402,15 @@ const Channels = () => {
         />
       )}
 
+      {/* Rename Channel Modal */}
+      {renameChannelModal && (
+        <RenameChannelModal
+          channelName={renameChannelModal.channelName}
+          onConfirm={handleRenameChannel}
+          onCancel={() => setRenameChannelModal(null)}
+        />
+      )}
+
       {/* Sidebar */}
       <div className="w-120 bg-gray-800 flex flex-col h-full">
         <div className="p-4 border-b border-gray-700">
@@ -471,6 +509,7 @@ const Channels = () => {
           userId={userId}
           isAdmin={userRole === 'admin'}
           onCopyInvite={handleCopyInvite}
+          onRename={handleRenameChannelRequest}
           onLeave={handleLeaveChannelRequest}
           onDelete={handleDeleteChannelRequest}
         />
