@@ -30,7 +30,6 @@ describe('Messages E2E Tests', () => {
         password: 'Password123!',
       });
 
-    const timestamp = Date.now();
     accessToken = registerRes.body.access_token;
     userId = registerRes.body._id || 'temp-user-id';
 

@@ -45,6 +45,22 @@ describe('AuthController (Unit Tests)', () => {
       expect(result).toEqual(expected);
       expect(authService.register).toHaveBeenCalledWith(registerDto);
     });
+
+    it('should accept username with exactly 35 characters', async () => {
+      const registerDto = {
+        email: 'test@example.com',
+        username: 'a'.repeat(35), // Exactement 35 caractères
+        password: 'password123',
+      };
+
+      const expected = { access_token: 'token' };
+      mockAuthService.register.mockResolvedValue(expected);
+
+      const result = await controller.register(registerDto);
+
+      expect(result).toEqual(expected);
+      expect(authService.register).toHaveBeenCalledWith(registerDto);
+    });
   });
 
   describe('login', () => {

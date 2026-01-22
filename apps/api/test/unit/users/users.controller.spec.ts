@@ -134,7 +134,7 @@ describe('UsersController', () => {
         mockRequest
       );
 
-      expect(result.username).toBe('newusername');
+      expect(result?.username).toBe('newusername');
     });
 
     it('should fail to update other user profile', async () => {
@@ -144,6 +144,21 @@ describe('UsersController', () => {
       await expect(
         controller.update(otherUserId, { username: 'new' }, userRequest)
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should update username with exactly 35 characters', async () => {
+      const longUsername = 'a'.repeat(35); // Exactement 35 caractères
+      const updated = { ...mockUser, username: longUsername };
+      jest.spyOn(usersService, 'update').mockResolvedValue(updated as any);
+
+      const result = await controller.update(
+        userId.toString(),
+        { username: longUsername },
+        mockRequest
+      );
+
+      expect(result?.username).toBe(longUsername);
+      expect(result?.username.length).toBe(35);
     });
   });
 

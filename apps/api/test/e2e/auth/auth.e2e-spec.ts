@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../../../src/app.module';
@@ -15,6 +15,7 @@ describe('Authentication E2E Tests', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
 
@@ -61,6 +62,37 @@ describe('Authentication E2E Tests', () => {
           password: 'weak',
         })
         .expect(400);
+    });
+
+    it('should fail with username longer than 35 characters', () => {
+      const timestamp = Date.now();
+      const longUsername = 'a'.repeat(36); // 36 caractères
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          email: `test${timestamp}@example.com`,
+          username: longUsername,
+          password: 'Password123!',
+        })
+        .expect(400);
+    });
+
+    it('should succeed with username of exactly 35 characters', () => {
+      const timestamp = Date.now();
+      const baseUsername = 'u'.repeat(25); // 25 caractères
+      const uniquePart = timestamp.toString().substring(0, 10); // 10 chiffres
+      const maxUsername = baseUsername + uniquePart; // 25 + 10 = 35 caractères
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({
+          email: `test${timestamp}@example.com`,
+          username: maxUsername,
+          password: 'Password123!',
+        })
+        .expect(201)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('access_token');
+        });
     });
   });
 

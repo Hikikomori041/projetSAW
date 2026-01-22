@@ -20,7 +20,6 @@ describe('Channels E2E Tests', () => {
 
     const timestamp = Date.now();
 
-    const timestamp = Date.now();
     // Register and login
     const registerRes = await request(app.getHttpServer())
       .post('/auth/register')
