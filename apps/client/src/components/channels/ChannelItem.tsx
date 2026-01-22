@@ -8,6 +8,15 @@ interface ChannelItemProps {
   onCopyInvite: () => void;
 }
 
+const MAX_CHANNEL_NAME_LENGTH = 32;
+
+const truncateChannelName = (name: string): string => {
+  if (name.length <= MAX_CHANNEL_NAME_LENGTH) {
+    return name;
+  }
+  return name.substring(0, MAX_CHANNEL_NAME_LENGTH) + '...';
+};
+
 const ChannelItem = ({ channel, isSelected, onSelect, onContextMenu, onCopyInvite }: ChannelItemProps) => {
   return (
     <li
@@ -20,7 +29,9 @@ const ChannelItem = ({ channel, isSelected, onSelect, onContextMenu, onCopyInvit
       <div className="flex items-center gap-2 justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-gray-400">#</span>
-          <span className="truncate">{channel.name}</span>
+          <span className="truncate" title={channel.name}>
+            {truncateChannelName(channel.name)}
+          </span>
         </div>
         <button
           className="btn btn-ghost btn-xs text-gray-400 hover:text-white"
