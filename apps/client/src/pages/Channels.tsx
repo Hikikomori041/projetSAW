@@ -222,7 +222,7 @@ const Channels = () => {
   const handleDeleteOwnChannel = async () => {
     if (!deleteOwnChannelModal) return;
     try {
-      await deleteChannel(deleteOwnChannelModal.channelId);
+      await deleteChannel(deleteOwnChannelModal.channelId, 'Suppression du canal par le propriétaire');
       if (selectedChannel?._id === deleteOwnChannelModal.channelId) {
         setSelectedChannel(null);
       }

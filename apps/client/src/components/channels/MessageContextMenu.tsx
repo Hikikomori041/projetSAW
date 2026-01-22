@@ -48,7 +48,7 @@ const MessageContextMenu = ({ messageContextMenu, messages, userId, isAdmin, onE
       {isAdmin && !isOwnMessage && !isBanned && message?.author && (
         <button
           className="w-full px-4 py-2 text-left hover:bg-red-900 transition-colors flex items-center gap-2 text-orange-400"
-          onClick={() => onBan(message.author.username, message.author._id)}
+          onClick={() => onBan(message.author!.username, message.author!._id)}
         >
           <span>🚫</span>
           <span>Bannir l'utilisateur</span>
