@@ -1,5 +1,4 @@
 import type { Channel } from '../../types';
-import { getAuthorName } from '../../utils/helpers';
 
 interface ChannelItemProps {
   channel: Channel;
@@ -22,7 +21,6 @@ const ChannelItem = ({ channel, isSelected, onSelect, onContextMenu, onCopyInvit
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-gray-400">#</span>
           <span className="truncate">{channel.name}</span>
-          <span className="text-xs text-gray-400">par {getAuthorName(channel.createdBy as any)}</span>
         </div>
         <button
           className="btn btn-ghost btn-xs text-gray-400 hover:text-white"

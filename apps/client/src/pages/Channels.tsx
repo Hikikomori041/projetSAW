@@ -424,7 +424,7 @@ const Channels = () => {
       <div className="flex-1 flex flex-col bg-gray-700">
         {selectedChannel ? (
           <>
-            <ChannelHeader channel={selectedChannel} isAdmin={userRole === 'admin'} />
+            <ChannelHeader channel={selectedChannel} />
             
             <div className="flex-1 p-4 overflow-y-auto">
               <MessageList
