@@ -117,6 +117,11 @@ cd apps/api
 npm run test:e2e
 ```
 
+### Tests de sécurité
+
+De nombreux tests de sécurité sont présents, concernant les droits d'accès à telle ou telle route par tel ou tel utilisateur.
+Pour les tests de chiffrements, ils sont détailler dans [la documentation des tests de sécurité](/apps/api/SECURITY_TESTS.md)
+
 ### Configuration des tests
 
 Les tests sont organisés dans `apps/api/test/` :

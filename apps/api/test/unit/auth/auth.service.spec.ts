@@ -180,4 +180,102 @@ describe('AuthService (Unit Tests)', () => {
       await expect(service.validateUser(payload)).rejects.toThrow(UnauthorizedException);
     });
   });
+
+  describe('Security Tests for Banned Users', () => {
+    it('should include ban reason in ForbiddenException', async () => {
+      const bannedUser = { 
+        ...mockUser, 
+        banned: true, 
+        bannedReason: 'Violation des règles' 
+      };
+      const loginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
+
+      mockUsersService.findByEmail.mockResolvedValue(bannedUser);
+
+      await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
+      await expect(service.login(loginDto)).rejects.toThrow('Violation des règles');
+    });
+
+    it('should show generic message if no ban reason provided', async () => {
+      const bannedUser = { 
+        ...mockUser, 
+        banned: true, 
+        bannedReason: undefined 
+      };
+      const loginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
+
+      mockUsersService.findByEmail.mockResolvedValue(bannedUser);
+
+      await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
+      await expect(service.login(loginDto)).rejects.toThrow('Contactez le support');
+    });
+
+    it('should check ban status before password validation (prevent timing attacks)', async () => {
+      const bannedUser = { ...mockUser, banned: true, bannedReason: 'Spam' };
+      const loginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
+
+      mockUsersService.findByEmail.mockResolvedValue(bannedUser);
+
+      await expect(service.login(loginDto)).rejects.toThrow(ForbiddenException);
+      
+      // validatePassword ne doit PAS être appelé pour un utilisateur banni
+      // Cela empêche les attaques par timing qui pourraient révéler si le mot de passe est correct
+      expect(mockUsersService.validatePassword).not.toHaveBeenCalled();
+    });
+
+    it('should reject banned user even with valid token in validateUser', async () => {
+      const payload = { sub: '1', username: 'testuser', role: 'user' };
+      const bannedUser = { ...mockUser, banned: true, bannedReason: 'Test' };
+
+      mockUsersService.findOne.mockResolvedValue(bannedUser);
+
+      // Même avec un token JWT valide, un utilisateur banni ne doit pas passer
+      await expect(service.validateUser(payload)).rejects.toThrow(UnauthorizedException);
+      await expect(service.validateUser(payload)).rejects.toThrow('User not found or inactive');
+    });
+
+    it('should not reveal user existence through different error messages', async () => {
+      const loginDtoNonExistent = {
+        email: 'nonexistent@example.com',
+        password: 'password123',
+      };
+
+      const loginDtoWrongPassword = {
+        email: 'test@example.com',
+        password: 'wrongpassword',
+      };
+
+      mockUsersService.findByEmail.mockResolvedValueOnce(null);
+      mockUsersService.findByEmail.mockResolvedValueOnce(mockUser);
+      mockUsersService.validatePassword.mockResolvedValue(false);
+
+      // Les deux cas doivent donner la même erreur générique
+      let error1, error2;
+      try {
+        await service.login(loginDtoNonExistent);
+      } catch (e) {
+        error1 = e;
+      }
+
+      try {
+        await service.login(loginDtoWrongPassword);
+      } catch (e) {
+        error2 = e;
+      }
+
+      // Les deux erreurs doivent être du même type et avoir le même message
+      expect(error1).toBeInstanceOf(UnauthorizedException);
+      expect(error2).toBeInstanceOf(UnauthorizedException);
+      expect(error1.message).toBe(error2.message);
+    });
+  });
 });

@@ -150,7 +150,7 @@ describe('MessagesController', () => {
 
       const result = await controller.update(messageId, { content: 'Updated' }, mockRequest);
 
-      expect(result.content).toBe('Updated');
+      expect(result?.content).toBe('Updated');
     });
 
     it('should fail to update non-existent message', async () => {
