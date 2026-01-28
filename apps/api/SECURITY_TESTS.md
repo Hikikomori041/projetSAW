@@ -1,10 +1,11 @@
-# Tests de Sécurité - Documentation
+# Tests de Sécurité (Chiffrement) - Documentation
 
-Ce document récapitule tous les tests de sécurité qui ont été ajoutés au projet.
+Ce document récapitule tous les tests de sécurité concernant le chiffrement des données.
 
 ## 📋 Vue d'ensemble
 
 Des tests de sécurité complets ont été ajoutés pour garantir :
+
 1. **Chiffrement des messages** - Vérification que les messages sont chiffrés en base de données
 2. **Hachage des mots de passe** - Vérification que les mots de passe sont hashés avec bcrypt
 3. **Restrictions des utilisateurs bannis** - Vérification qu'un utilisateur banni ne peut effectuer aucune action
@@ -13,9 +14,8 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 
 **Fichier :** `apps/api/test/unit/messages/message.entity.spec.ts`
 
-### Tests ajoutés :
+### Encryption Security Tests
 
-#### Encryption Security Tests
 - ✅ **Chiffrement avant sauvegarde** : Vérifie que le contenu du message est chiffré avant d'être stocké en BDD
 - ✅ **Format de chiffrement** : Vérifie le format `salt:iv:tag:data` (AES-256-GCM)
 - ✅ **Déchiffrement correct** : Vérifie que les messages peuvent être déchiffrés correctement
@@ -28,11 +28,13 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 - ✅ **Caractères spéciaux** : Vérifie le support des accents, emojis, etc.
 - ✅ **Messages longs** : Vérifie le chiffrement de messages de grande taille
 
-#### Security Best Practices
+### Security Best Practices
+
 - ✅ **PBKDF2 avec 100k itérations** : Vérifie l'utilisation d'une dérivation de clé forte
 - ✅ **Pas de fuite d'information** : Vérifie que les erreurs ne contiennent pas de texte en clair
 
 ### Algorithme utilisé
+
 - **AES-256-GCM** : Chiffrement authentifié empêchant les modifications
 - **PBKDF2** : Dérivation de clé avec 100 000 itérations (résistance aux attaques par force brute)
 
@@ -40,9 +42,8 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 
 **Fichier :** `apps/api/test/unit/users/users.service.spec.ts`
 
-### Tests ajoutés :
+### Password Security Tests
 
-#### Password Security Tests
 - ✅ **Hachage avant sauvegarde** : Vérifie que `bcrypt.hash()` est appelé avant la sauvegarde
 - ✅ **Stockage du hash uniquement** : Vérifie que le mot de passe en clair n'est jamais stocké
 - ✅ **Format bcrypt** : Vérifie que le hash commence par `$2b$` (bcrypt v2b)
@@ -54,6 +55,7 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 - ✅ **Résistance aux timing attacks** : Vérifie que bcrypt prend un temps constant
 
 ### Algorithme utilisé
+
 - **bcrypt** : Fonction de hachage adaptative spécialement conçue pour les mots de passe
 - **10 rounds minimum** : Temps de calcul suffisant pour ralentir les attaques par force brute
 
@@ -63,7 +65,8 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 
 **Fichier :** `apps/api/test/unit/auth/auth.service.spec.ts`
 
-#### Tests améliorés :
+#### Tests améliorés
+
 - ✅ **Raison du ban dans l'exception** : Vérifie que la raison du ban est incluse dans l'erreur
 - ✅ **Message générique sans raison** : Vérifie un message par défaut si pas de raison
 - ✅ **Vérification du ban avant mot de passe** : Empêche les timing attacks
@@ -75,34 +78,40 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 **Fichier :** `apps/api/test/e2e/users/banned-users-security.e2e-spec.ts`
 
 #### Banned User - Authentication
+
 - ✅ **Empêcher la connexion** : Un utilisateur banni ne peut pas se connecter
 - ✅ **Invalidation du token** : Le token existant est invalidé après un ban
 
 #### Banned User - Channels Access
+
 - ✅ **Empêcher le listage** : Un utilisateur banni ne peut pas lister les channels
 - ✅ **Empêcher l'accès spécifique** : Ne peut pas accéder à un channel particulier
 - ✅ **Empêcher la création** : Ne peut pas créer de nouveaux channels
 
 #### Banned User - Messages
+
 - ✅ **Empêcher l'envoi** : Ne peut pas envoyer de messages
 - ✅ **Empêcher la lecture** : Ne peut pas lire les messages
 - ✅ **Empêcher l'édition** : Ne peut pas éditer ses anciens messages
 - ✅ **Empêcher la suppression** : Ne peut pas supprimer ses anciens messages
 
 #### Banned User - Profile Updates
+
 - ✅ **Empêcher la mise à jour** : Ne peut pas modifier son profil
 - ✅ **Empêcher le listage** : Ne peut pas voir la liste des utilisateurs
 
 #### Ban Reason Display
+
 - ✅ **Affichage de la raison** : La raison du ban est affichée lors de la tentative de connexion
 - ✅ **Message générique** : Message par défaut si pas de raison fournie
 
 #### Recommendation
+
 - 📝 **Débannissement** : Le test suggère d'ajouter un endpoint pour débannir un utilisateur
 
 ## 🎯 Couverture de Sécurité
 
-### Principes de sécurité couverts :
+### Principes de sécurité couverts
 
 1. **Confidentialité** 🔐
    - Messages chiffrés en BDD (AES-256-GCM)
@@ -133,29 +142,22 @@ Des tests de sécurité complets ont été ajoutés pour garantir :
 ## 🚀 Exécution des Tests
 
 ### Tests unitaires
+
 ```bash
 npm run test:unit
 ```
 
 ### Tests E2E
+
 ```bash
 npm run test:e2e
 ```
 
 ### Couverture des tests
+
 ```bash
 npm run test:cov
 ```
-
-## 📊 Fichiers modifiés/créés
-
-### Nouveaux fichiers :
-- ✨ `apps/api/test/unit/messages/message.entity.spec.ts` - Tests de chiffrement des messages
-- ✨ `apps/api/test/e2e/users/banned-users-security.e2e-spec.ts` - Tests E2E utilisateurs bannis
-
-### Fichiers modifiés :
-- ✏️ `apps/api/test/unit/users/users.service.spec.ts` - Ajout des tests de hachage de mots de passe
-- ✏️ `apps/api/test/unit/auth/auth.service.spec.ts` - Amélioration des tests utilisateurs bannis
 
 ## 🔍 Résumé des Vulnérabilités Adressées
 
@@ -175,20 +177,3 @@ npm run test:cov
 - **Tests unitaires de mots de passe** : 8 tests
 - **Tests unitaires utilisateurs bannis** : 5 tests
 - **Tests E2E utilisateurs bannis** : 20 tests
-
-**TOTAL : 46 tests de sécurité** 🎉
-
-## 📝 Recommandations Futures
-
-1. **Rotation des clés** : Ajouter un système de rotation des clés de chiffrement
-2. **Audit logging** : Logger toutes les tentatives de connexion des utilisateurs bannis
-3. **Rate limiting** : Limiter les tentatives de connexion
-4. **2FA** : Ajouter l'authentification à deux facteurs
-5. **Débannissement** : Créer un endpoint pour débannir des utilisateurs
-6. **Password policies** : Renforcer les politiques de mots de passe
-7. **Session management** : Améliorer la gestion des sessions et révocation
-
----
-
-*Document généré le 28 janvier 2026*
-*Tests créés pour garantir la sécurité de l'application*
