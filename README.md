@@ -4,7 +4,7 @@
 
 Étudiants IL : BLACHÈRE Nicolas et ORTEGA Erwan
 
-Étudiants SIRAV : ZOUARI Sami et SOUDANI Younes
+Étudiants SIRAV : SOUDANI Younes, ZOUAOUI Cherif et ZOUARI Sami
 
 ## Description
 
@@ -30,7 +30,7 @@ appli-saw/
 │   │   └── test/         # Tests unitaires et e2e
 │   │       ├── unit/     # Tests unitaires (services, controllers, gateway)
 │   │       └── e2e/      # Tests end-to-end
-│   └── client/           # Frontend React + TypeScript
+│   └── client/           # Frontend React
 │       └── src/
 │           ├── components/
 │           ├── hooks/
@@ -43,7 +43,7 @@ appli-saw/
 
 - Node.js (v18+)
 - npm ou yarn
-- Docker & Docker Compose (pour MongoDB)
+- Docker & Docker Compose (pour MongoDB, la base locale n'est utilisée que pour les tests end-to-end)
 
 ## Installation
 
